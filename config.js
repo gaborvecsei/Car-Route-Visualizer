@@ -1,0 +1,11 @@
+const CONFIG = {
+    GOOGLE_MAPS_API_KEY: 'YOUR_API_KEY_HERE',
+    DEFAULT_CENTER: { lat: 40.7128, lng: -74.0060 },
+    DEFAULT_ZOOM: 7,
+    OVERLAP_TOLERANCE_METERS: 100,
+    ROUTE_COLORS: {
+        ROUTE1: '#FF0000',
+        ROUTE2: '#0000FF', 
+        OVERLAP: '#00FF00'
+    }
+};

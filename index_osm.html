@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi Maps Route Visualizer (OpenStreetMap)</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <div class="container">
+        <h1>Multi Maps Route Visualizer</h1>
+        <p style="text-align: center; margin-bottom: 20px; color: #666;">
+            Using OpenStreetMap - No API key required!
+        </p>
+        
+        <div class="inputs-section">
+            <div class="route-group">
+                <h3>Route 1</h3>
+                <input type="text" id="route1-from" placeholder="From (e.g., New York, NY)" class="route-input">
+                <input type="text" id="route1-to" placeholder="To (e.g., Boston, MA)" class="route-input">
+            </div>
+            
+            <div class="route-group">
+                <h3>Route 2</h3>
+                <input type="text" id="route2-from" placeholder="From (e.g., Philadelphia, PA)" class="route-input">
+                <input type="text" id="route2-to" placeholder="To (e.g., Washington, DC)" class="route-input">
+            </div>
+            
+            <button id="visualize-btn" class="visualize-button">Visualize Routes</button>
+        </div>
+        
+        <div id="map" class="map-container"></div>
+        <div id="status" class="status-message"></div>
+    </div>
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="config_osm.js"></script>
+    <script src="script_osm.js"></script>
+</body>
+</html>
