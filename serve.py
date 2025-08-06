@@ -23,12 +23,11 @@ def main():
 
     with socketserver.TCPServer(("", PORT), CustomHandler) as httpd:
         print(f"Server running at http://localhost:{PORT}")
-        print(f"OpenStreetMap version: http://localhost:{PORT}/index_osm.html")
-        print(f"Google Maps version: http://localhost:{PORT}/index.html")
+        print(f"Multi Maps Route Visualizer: http://localhost:{PORT}/index.html")
         print("Press Ctrl+C to stop the server")
 
-        # Auto-open the OSM version in browser
-        webbrowser.open(f'http://localhost:{PORT}/index_osm.html')
+        # Auto-open the application in browser
+        webbrowser.open(f'http://localhost:{PORT}/index.html')
 
         try:
             httpd.serve_forever()
