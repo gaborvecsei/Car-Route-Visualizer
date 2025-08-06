@@ -38,6 +38,9 @@ function initMap() {
     const domeSlider = document.getElementById('dome-size-slider');
     const domeValue = document.getElementById('dome-size-value');
     
+    // Set initial display value
+    domeValue.textContent = domeSlider.value + 'x';
+    
     domeSlider.addEventListener('input', function() {
         const value = parseFloat(this.value);
         domeValue.textContent = value.toFixed(1) + 'x';
@@ -635,16 +638,7 @@ function createSkyDomeVisualization(sunPos, index) {
     const zoomFactor = Math.pow(2, (11 - currentZoom)); // Scale inversely with zoom
     const horizonRadius = Math.max(100, baseRadius * zoomFactor * userSizeMultiplier); // User-adjustable size
     
-    const horizonCircle = L.circle([lat, lng], {
-        radius: horizonRadius,
-        color: '#87CEEB',
-        weight: 2,
-        opacity: 0.7,
-        fillColor: '#E6F3FF',
-        fillOpacity: 0.2
-    }).addTo(map);
-    
-    // Removed compass direction labels as requested
+    // Removed blue sky dome circle as requested
     
     // Calculate sun position within the sky dome
     // The closer to center = higher elevation, closer to edge = lower elevation
@@ -707,7 +701,6 @@ function createSkyDomeVisualization(sunPos, index) {
     
     sunMarker.bindPopup(sunPopup);
     
-    sunMarkers.push(horizonCircle);
     sunMarkers.push(sunMarker);
     sunMarkers.push(elevationLine);
 }
