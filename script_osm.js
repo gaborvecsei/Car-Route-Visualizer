@@ -479,7 +479,7 @@ function calculateSunPositionsAlongRoute(routePath, startDate) {
             
             console.log(`Stop ${sunPositions.length + 1} at ${timeAtPosition.toLocaleString()}:`);
             console.log(`  Location: ${position[0].toFixed(3)}, ${position[1].toFixed(3)}`);
-            console.log(`  Sun elevation: ${sunPosition.elevation.toFixed(1)}° (${isDaylight ? 'DAY' : 'NIGHT'})`);
+            console.log(`  Sun elevation: ${sunPosition.elevation.toFixed(1)}°, Azimuth: ${sunPosition.azimuth.toFixed(1)}° (${isDaylight ? 'DAY' : 'NIGHT'})`);
             
             sunPositions.push({
                 location: position,
@@ -616,7 +616,7 @@ function visualizeSunPositions(sunPositions) {
                 </div>
                 <p style="margin: 3px 0;"><strong>Distance:</strong> ${sunPos.distance.toFixed(1)} km from start</p>
                 <p style="margin: 3px 0; font-size: 12px; color: #666;">
-                    ${sunPos.isDaylight ? '🔵 Blue circle shows sky dome with sun position' : '🌙 Nighttime - no sun visible'}
+                    ${sunPos.isDaylight ? '🌅 Line color & length show sun height: RED/short = overhead, YELLOW/long = horizon' : '🌙 Nighttime - no sun visible'}
                 </p>
             </div>
         `;
@@ -631,33 +631,48 @@ function createSkyDomeVisualization(sunPos, index) {
     const azimuth = sunPos.sunAzimuth;
     const elevation = sunPos.sunElevation;
     
-    // Create sky dome (horizon circle) with zoom-responsive and user-adjustable radius
+    // Create sky dome with reasonable radius but enhanced difference
     const currentZoom = map.getZoom();
     const userSizeMultiplier = parseFloat(document.getElementById('dome-size-slider').value);
-    const baseRadius = 2000; // Base radius in meters (reduced to more reasonable default)
+    const baseRadius = 3000; // Moderate increase from original 2000m for better visibility
     const zoomFactor = Math.pow(2, (11 - currentZoom)); // Scale inversely with zoom
-    const horizonRadius = Math.max(100, baseRadius * zoomFactor * userSizeMultiplier); // User-adjustable size
+    const horizonRadius = Math.max(200, baseRadius * zoomFactor * userSizeMultiplier); // Reasonable minimum
     
-    // Removed blue sky dome circle as requested
+    // Calculate sun position with moderate non-linear scaling
+    // When elevation = 90° (directly overhead), distance = 0 (sun at same location as observer)
+    // When elevation = 0° (on horizon), distance = horizonRadius (sun at edge of dome)
+    // Use gentle exponential curve to make the difference more noticeable but not extreme
     
-    // Calculate sun position within the sky dome
-    // The closer to center = higher elevation, closer to edge = lower elevation
-    const elevationFactor = elevation / 90; // 0 to 1
-    const sunDistanceInMeters = horizonRadius * (1 - elevationFactor * 0.8); // Sun moves from edge to 20% from center
-    const sunDistanceInDegrees = sunDistanceInMeters / 111000; // Convert to degrees
+    const elevationFactor = Math.max(0, elevation) / 90; // 0 to 1 (0 = horizon, 1 = overhead)
+    
+    // Apply gentle exponential curve for subtle but noticeable effect
+    // This makes high elevation closer to center, low elevation farther, but not extreme
+    const dramaticFactor = Math.pow(elevationFactor, 1.8); // Gentler exponential curve
+    const sunDistance = horizonRadius * (1 - dramaticFactor);
+    
+    console.log(`DEBUG: Processing elevation ${elevation.toFixed(1)}°`);
+    console.log(`  → Elevation factor: ${elevationFactor.toFixed(3)}`);
+    console.log(`  → Dramatic factor: ${dramaticFactor.toFixed(3)}`);
+    console.log(`  → Sun distance from center: ${sunDistance.toFixed(0)}m`);
+    console.log(`  → Horizon radius: ${horizonRadius.toFixed(0)}m`);
+    console.log(`  → Distance ratio: ${(sunDistance / horizonRadius * 100).toFixed(1)}% of horizon radius`);
+    console.log(`  → Line color: ${getSunLineColor(elevation)}`);
+    
+    const sunDistanceInDegrees = sunDistance / 111000; // Convert meters to degrees
     
     const sunRad = (azimuth * Math.PI) / 180;
     const sunLat = lat + Math.cos(sunRad) * sunDistanceInDegrees;
     const sunLng = lng + Math.sin(sunRad) * sunDistanceInDegrees;
     
-    // Create sun marker with height indication
+    // Create sun marker with elevation-based colors and size
     const sunSize = Math.max(12, 20 - (elevation / 90) * 8); // Larger when lower in sky
+    const markerColors = getSunMarkerColors(elevation);
     const sunIcon = L.divIcon({
         html: `<div style="
             width: ${sunSize}px; 
             height: ${sunSize}px; 
-            background: radial-gradient(circle, #FFD700 0%, #FFA500 70%, #FF8C00 100%); 
-            border: 2px solid #FF8C00; 
+            background: ${markerColors.background}; 
+            border: 2px solid ${markerColors.border}; 
             border-radius: 50%; 
             display: flex; 
             align-items: center; 
@@ -665,7 +680,7 @@ function createSkyDomeVisualization(sunPos, index) {
             font-size: ${Math.max(8, sunSize - 8)}px;
             color: white;
             text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
-            box-shadow: 0 0 ${sunSize/2}px rgba(255, 215, 0, 0.8);
+            box-shadow: 0 0 ${sunSize/2}px ${markerColors.shadow};
             position: relative;
         ">☀</div>`,
         className: 'sun-in-sky',
@@ -678,13 +693,14 @@ function createSkyDomeVisualization(sunPos, index) {
         zIndexOffset: 800
     }).addTo(map);
     
-    // Create elevation line from center to sun position
+    // Create line from observer location to sun position in sky with elevation-based color
+    const lineColor = getSunLineColor(elevation);
     const elevationLine = L.polyline([
-        [lat, lng], // Center of the blue circle
-        [sunLat, sunLng] // Sun position
+        [lat, lng], // Observer location
+        [sunLat, sunLng] // Sun position on sky dome
     ], {
-        color: '#FF6B00',
-        weight: 5,
+        color: lineColor,
+        weight: 6, // Reasonable thickness for good visibility
         opacity: 1.0
     }).addTo(map);
     
@@ -718,6 +734,78 @@ function getSkyDescription(elevation) {
     if (elevation < 60) return 'High in sky';
     if (elevation < 80) return 'Very high';
     return 'Nearly overhead';
+}
+
+function getSunLineColor(elevation) {
+    // Create dramatic color gradient based on elevation
+    // High elevation (overhead) = bright red/magenta (short lines)
+    // Low elevation (horizon) = yellow/gold (long lines)
+    
+    const normalizedElevation = Math.max(0, Math.min(90, elevation)) / 90; // 0 to 1
+    
+    if (elevation >= 70) {
+        // Very high sun (70-90°): Bright red/magenta - very short lines
+        return '#FF0080'; // Bright magenta-red
+    } else if (elevation >= 50) {
+        // High sun (50-70°): Red to red-orange
+        const factor = (elevation - 50) / 20; // 0 to 1
+        const red = 255;
+        const green = Math.round(32 * (1 - factor)); // 32 to 0
+        const blue = Math.round(128 * (1 - factor)); // 128 to 0
+        return `rgb(${red}, ${green}, ${blue})`;
+    } else if (elevation >= 30) {
+        // Medium-high sun (30-50°): Orange-red to orange
+        const factor = (elevation - 30) / 20; // 0 to 1
+        const red = 255;
+        const green = Math.round(100 + (55 * (1 - factor))); // 155 to 100
+        const blue = 0;
+        return `rgb(${red}, ${green}, ${blue})`;
+    } else if (elevation >= 10) {
+        // Medium-low sun (10-30°): Orange to yellow-orange
+        const factor = (elevation - 10) / 20; // 0 to 1
+        const red = 255;
+        const green = Math.round(165 + (90 * (1 - factor))); // 255 to 165
+        const blue = 0;
+        return `rgb(${red}, ${green}, ${blue})`;
+    } else {
+        // Low sun (0-10°): Yellow-gold - very long lines
+        return '#FFD700'; // Gold
+    }
+}
+
+function getSunMarkerColors(elevation) {
+    // Similar gradient but with more intensity for sun markers
+    if (elevation >= 70) {
+        return {
+            background: 'radial-gradient(circle, #FF0080 0%, #FF4500 70%, #FF6B00 100%)',
+            border: '#FF0080',
+            shadow: 'rgba(255, 0, 128, 0.8)'
+        };
+    } else if (elevation >= 50) {
+        return {
+            background: 'radial-gradient(circle, #FF4500 0%, #FF6B00 70%, #FF8C00 100%)',
+            border: '#FF4500',
+            shadow: 'rgba(255, 69, 0, 0.8)'
+        };
+    } else if (elevation >= 30) {
+        return {
+            background: 'radial-gradient(circle, #FF8C00 0%, #FFA500 70%, #FFB84D 100%)',
+            border: '#FF8C00',
+            shadow: 'rgba(255, 140, 0, 0.8)'
+        };
+    } else if (elevation >= 10) {
+        return {
+            background: 'radial-gradient(circle, #FFA500 0%, #FFD700 70%, #FFEB99 100%)',
+            border: '#FFA500',
+            shadow: 'rgba(255, 165, 0, 0.8)'
+        };
+    } else {
+        return {
+            background: 'radial-gradient(circle, #FFD700 0%, #FFEB99 70%, #FFF8DC 100%)',
+            border: '#FFD700',
+            shadow: 'rgba(255, 215, 0, 0.8)'
+        };
+    }
 }
 
 function clearSunMarkers() {
