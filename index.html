@@ -11,6 +11,19 @@
         <h1>Multi GMaps Route Visualizer</h1>
         
         <div class="inputs-section">
+            <div class="sun-tracking-group">
+                <h3>Sun Tracking Settings</h3>
+                <div class="sun-inputs">
+                    <label for="trip-date">Trip Start Date:</label>
+                    <input type="date" id="trip-date" class="date-input">
+                    <label for="selected-route">Route to Track:</label>
+                    <select id="selected-route" class="route-select">
+                        <option value="route1">Route 1</option>
+                        <option value="route2">Route 2</option>
+                    </select>
+                </div>
+            </div>
+            
             <div class="route-group">
                 <h3>Route 1</h3>
                 <input type="text" id="route1-from" placeholder="From (e.g., New York, NY)" class="route-input">
@@ -24,6 +37,7 @@
             </div>
             
             <button id="visualize-btn" class="visualize-button">Visualize Routes</button>
+            <button id="track-sun-btn" class="track-sun-button">Track Sun Position</button>
         </div>
         
         <div id="map" class="map-container"></div>
