@@ -43,7 +43,7 @@
                     </div>
                 </div>
                 
-                <button id="visualize-btn" class="visualize-button">Visualize Route & Sun Exposure</button>
+                <button id="visualize-btn" class="visualize-button">Analyze Sun Exposure</button>
             </div>
             
             <!-- Map section -->
@@ -54,6 +54,30 @@
             
             <!-- Results panel -->
             <div class="results-panel">
+                <!-- Placeholder when no results -->
+                <div id="results-placeholder" class="results-placeholder">
+                    <div class="placeholder-content">
+                        <div class="placeholder-icon">📊</div>
+                        <h3>Sun Exposure Results</h3>
+                        <p>Click "Analyze Sun Exposure" to see how sunlight will affect different sides of your car during the trip.</p>
+                        <div class="placeholder-features">
+                            <div class="feature-item">
+                                <span class="feature-icon">🌅</span>
+                                <span>Real-time sun position tracking</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🎯</span>
+                                <span>Precise exposure percentages</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🚗</span>
+                                <span>Car-side visualization</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Results container -->
                 <div id="car-summary" class="car-summary-container" style="display: none;">
                     <h3>Sun Exposure Summary</h3>
                     <div class="car-box-visualization">

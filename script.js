@@ -968,12 +968,14 @@ function updateSummaryVisualization(carExposureData) {
         console.log(`Least exposed side: ${minExposure.side} (${(minExposure.value * 100).toFixed(1)}%)`);
     }
     
-    // Show the summary container
+    // Hide placeholder and show the summary container
+    document.getElementById('results-placeholder').style.display = 'none';
     document.getElementById('car-summary').style.display = 'block';
 }
 
 function clearCarVisualization() {
-    // Hide the summary container
+    // Show placeholder and hide the summary container
+    document.getElementById('results-placeholder').style.display = 'flex';
     document.getElementById('car-summary').style.display = 'none';
     
     // Clear any remaining markers (though we're not using them anymore)
