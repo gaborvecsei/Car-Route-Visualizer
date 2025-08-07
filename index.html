@@ -11,20 +11,25 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="container">
-        <div class="header">
+        <header class="header" role="banner">
             <h1>Route Sun Exposure Visualizer</h1>
             <p>Plan your route and visualize sun exposure on your car - No API key required!</p>
-        </div>
+        </header>
         
-        <div class="main-content">
+        <main id="main-content" class="main-content" role="main">
             <!-- Sidebar with controls -->
-            <div class="sidebar">
+            <section class="sidebar" aria-label="Route and sun tracking controls">
                 <div class="route-group">
                     <h3>Route</h3>
                     <div class="route-inputs">
-                        <input type="text" id="route-from" value="Budapest" class="route-input" placeholder="From">
-                        <input type="text" id="route-to" value="Klenovica" class="route-input" placeholder="To">
+                        <label for="route-from" class="visually-hidden">Starting location</label>
+                        <input type="text" id="route-from" value="Budapest" class="route-input" placeholder="From" aria-describedby="route-from-help">
+                        <div id="route-from-help" class="sr-only">Enter your starting location</div>
+                        <label for="route-to" class="visually-hidden">Destination</label>
+                        <input type="text" id="route-to" value="Klenovica" class="route-input" placeholder="To" aria-describedby="route-to-help">
+                        <div id="route-to-help" class="sr-only">Enter your destination</div>
                     </div>
                 </div>
                 
@@ -46,17 +51,21 @@
                     </div>
                 </div>
                 
-                <button id="visualize-btn" class="visualize-button">Analyze Sun Exposure</button>
-            </div>
+                <button id="visualize-btn" class="visualize-button" type="button" aria-describedby="analyze-help">
+                    <span class="button-icon">☀️</span>
+                    Analyze Sun Exposure
+                </button>
+                <div id="analyze-help" class="sr-only">Calculate sun exposure for your planned route</div>
+            </section>
             
             <!-- Map section -->
-            <div class="map-section">
-                <div id="map" class="map-container"></div>
-                <div id="status" class="status-message"></div>
-            </div>
+            <section class="map-section" aria-label="Interactive map">
+                <div id="map" class="map-container" role="img" aria-label="Interactive route map"></div>
+                <div id="status" class="status-message" role="status" aria-live="polite"></div>
+            </section>
             
             <!-- Results panel -->
-            <div class="results-panel">
+            <aside class="results-panel" aria-label="Sun exposure analysis results">
                 <!-- Placeholder when no results -->
                 <div id="results-placeholder" class="results-placeholder">
                     <div class="placeholder-content">
@@ -116,8 +125,8 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </aside>
+        </main>
     </div>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
