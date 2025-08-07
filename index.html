@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi Maps Route Visualizer</title>
+    <title>Route Sun Exposure Visualizer</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
     <div class="container">
-        <h1>Multi Maps Route Visualizer</h1>
+        <h1>Route Sun Exposure Visualizer</h1>
         <p style="text-align: center; margin-bottom: 20px; color: #666;">
-            Using OpenStreetMap - No API key required!
+            Plan your route and visualize sun exposure on your car - No API key required!
         </p>
         
         <div class="inputs-section">
@@ -22,11 +22,6 @@
                     <input type="date" id="trip-date" class="date-input">
                     <label for="trip-time">Start Time:</label>
                     <input type="time" id="trip-time" class="time-input">
-                    <label for="selected-route">Route to Track:</label>
-                    <select id="selected-route" class="route-select">
-                        <option value="route1">Route 1</option>
-                        <option value="route2">Route 2</option>
-                    </select>
                 </div>
                 <div class="car-visualization-control">
                     <label for="check-frequency">Sun Analysis Interval (km):</label>
@@ -35,18 +30,12 @@
             </div>
             
             <div class="route-group">
-                <h3>Route 1</h3>
-                <input type="text" id="route1-from" value="Budapest" class="route-input">
-                <input type="text" id="route1-to" value="Klenovica" class="route-input">
+                <h3>Route</h3>
+                <input type="text" id="route-from" value="Budapest" class="route-input" placeholder="From">
+                <input type="text" id="route-to" value="Klenovica" class="route-input" placeholder="To">
             </div>
             
-            <div class="route-group">
-                <h3>Route 2</h3>
-                <input type="text" id="route2-from" value="Pecs" class="route-input">
-                <input type="text" id="route2-to" value="Klenovica" class="route-input">
-            </div>
-            
-            <button id="visualize-btn" class="visualize-button">Visualize Routes & Sun Exposure</button>
+            <button id="visualize-btn" class="visualize-button">Visualize Route & Sun Exposure</button>
         </div>
         
         <div id="map" class="map-container"></div>

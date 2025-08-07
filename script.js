@@ -1,8 +1,6 @@
 let map;
-let route1Layer = null;
-let route2Layer = null;
-let route1Data = null;
-let route2Data = null;
+let routeLayer = null;
+let routeData = null;
 let sunMarkers = [];
 let currentSunPositions = [];
 let carVisualizationMarkers = [];
@@ -37,7 +35,7 @@ function initMap() {
     
     // Initialize default date and time values
     
-    showStatus('Map initialized using OpenStreetMap. Enter your routes and click "Visualize Routes".', 'info');
+    showStatus('Map initialized using OpenStreetMap. Enter your route and click "Visualize Route & Sun Exposure".', 'info');
 }
 
 function showStatus(message, type = 'info') {
@@ -47,17 +45,15 @@ function showStatus(message, type = 'info') {
 }
 
 function validateInputs() {
-    const route1From = document.getElementById('route1-from').value.trim();
-    const route1To = document.getElementById('route1-to').value.trim();
-    const route2From = document.getElementById('route2-from').value.trim();
-    const route2To = document.getElementById('route2-to').value.trim();
+    const routeFrom = document.getElementById('route-from').value.trim();
+    const routeTo = document.getElementById('route-to').value.trim();
     
-    if (!route1From || !route1To || !route2From || !route2To) {
-        showStatus('Please fill in all route fields.', 'error');
+    if (!routeFrom || !routeTo) {
+        showStatus('Please fill in both route fields.', 'error');
         return false;
     }
     
-    return { route1From, route1To, route2From, route2To };
+    return { routeFrom, routeTo };
 }
 
 async function geocodeLocation(address) {
@@ -226,36 +222,27 @@ async function visualizeRoutes() {
     try {
         clearPreviousRoutes();
         
-        const [route1From, route1To, route2From, route2To] = await Promise.all([
-            geocodeLocation(inputs.route1From),
-            geocodeLocation(inputs.route1To),
-            geocodeLocation(inputs.route2From),
-            geocodeLocation(inputs.route2To)
+        const [routeFrom, routeTo] = await Promise.all([
+            geocodeLocation(inputs.routeFrom),
+            geocodeLocation(inputs.routeTo)
         ]);
         
-        showStatus('Calculating routes...', 'info');
+        showStatus('Calculating route...', 'info');
         
-        const [route1Result, route2Result] = await Promise.all([
-            calculateRoute(route1From, route1To),
-            calculateRoute(route2From, route2To)
-        ]);
+        const routeResult = await calculateRoute(routeFrom, routeTo);
         
-        route1Data = route1Result;
-        route2Data = route2Result;
+        routeData = routeResult;
         
-        displayRoute(route1Data, CONFIG.ROUTE_COLORS.ROUTE1, 'Route 1');
-        displayRoute(route2Data, CONFIG.ROUTE_COLORS.ROUTE2, 'Route 2');
+        displayRoute(routeData, CONFIG.ROUTE_COLORS.ROUTE1, 'Route');
         
-        fitMapToRoutes([route1Data, route2Data]);
+        fitMapToRoutes([routeData]);
         
-        // Show summary with travel times
-        const route1Time = formatDuration(route1Data.duration);
-        const route2Time = formatDuration(route2Data.duration);
-        const route1Distance = (route1Data.distance / 1000).toFixed(1);
-        const route2Distance = (route2Data.distance / 1000).toFixed(1);
+        // Show summary with travel time
+        const routeTime = formatDuration(routeData.duration);
+        const routeDistance = (routeData.distance / 1000).toFixed(1);
         
         showStatus(
-            `Routes calculated successfully! 🔵 Route 1: ${route1Distance}km (${route1Time}) | 🔴 Route 2: ${route2Distance}km (${route2Time})`, 
+            `Route calculated successfully! 📍 Distance: ${routeDistance}km | ⏱️ Time: ${routeTime}`, 
             'success'
         );
         
@@ -275,19 +262,14 @@ async function visualizeRoutes() {
 }
 
 function clearPreviousRoutes() {
-    if (route1Layer) {
-        map.removeLayer(route1Layer);
-        route1Layer = null;
-    }
-    if (route2Layer) {
-        map.removeLayer(route2Layer);
-        route2Layer = null;
+    if (routeLayer) {
+        map.removeLayer(routeLayer);
+        routeLayer = null;
     }
     clearSunMarkers();
     clearCarVisualization();
     currentSunPositions = [];
-    route1Data = null;
-    route2Data = null;
+    routeData = null;
 }
 
 function formatDuration(durationInSeconds) {
@@ -309,11 +291,7 @@ function displayRoute(routeData, color, label) {
         opacity: 0.7
     }).addTo(map);
     
-    if (label === 'Route 1') {
-        route1Layer = layer;
-    } else {
-        route2Layer = layer;
-    }
+    routeLayer = layer;
     
     layer.bindPopup(`
         <strong>${label}</strong><br>
@@ -353,7 +331,6 @@ function getDistance(point1, point2) {
 }
 
 function trackSunPosition() {
-    const selectedRoute = document.getElementById('selected-route').value;
     const tripDate = document.getElementById('trip-date').value;
     const tripTime = document.getElementById('trip-time').value;
     
@@ -362,10 +339,8 @@ function trackSunPosition() {
         return;
     }
     
-    const routeData = selectedRoute === 'route1' ? route1Data : route2Data;
-    
     if (!routeData) {
-        showStatus('Please calculate routes first by clicking "Visualize Routes".', 'error');
+        showStatus('Please calculate route first by clicking "Visualize Route".', 'error');
         return;
     }
     
@@ -378,7 +353,7 @@ function trackSunPosition() {
         const sunPositions = calculateSunPositionsAlongRoute(routeData.path, startDateTime);
         currentSunPositions = sunPositions; // Store for zoom refresh
         visualizeSunPositions(sunPositions);
-        showStatus(`Sun positions calculated for ${sunPositions.length} points along ${selectedRoute === 'route1' ? 'Route 1' : 'Route 2'}.`, 'success');
+        showStatus(`Sun positions calculated for ${sunPositions.length} points along the route.`, 'success');
     }, 500);
 }
 
@@ -736,7 +711,6 @@ function refreshSunVisualization() {
 }
 
 function showCarSunExposure() {
-    const selectedRoute = document.getElementById('selected-route').value;
     const tripDate = document.getElementById('trip-date').value;
     const tripTime = document.getElementById('trip-time').value;
     const checkFrequency = parseInt(document.getElementById('check-frequency').value) || 5;
@@ -746,10 +720,8 @@ function showCarSunExposure() {
         return;
     }
     
-    const routeData = selectedRoute === 'route1' ? route1Data : route2Data;
-    
     if (!routeData) {
-        showStatus('Please calculate routes first by clicking "Visualize Routes".', 'error');
+        showStatus('Please calculate route first by clicking "Visualize Route".', 'error');
         return;
     }
     
@@ -761,7 +733,7 @@ function showCarSunExposure() {
     setTimeout(() => {
         const carExposureData = calculateCarSunExposure(routeData.path, startDateTime, checkFrequency);
         visualizeCarSunExposure(carExposureData);
-        showStatus(`Car sun exposure calculated for ${carExposureData.length} points along ${selectedRoute === 'route1' ? 'Route 1' : 'Route 2'}.`, 'success');
+        showStatus(`Car sun exposure calculated for ${carExposureData.length} points along the route.`, 'success');
     }, 500);
 }
 
