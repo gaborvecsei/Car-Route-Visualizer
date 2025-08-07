@@ -9,69 +9,84 @@
 </head>
 <body>
     <div class="container">
-        <h1>Route Sun Exposure Visualizer</h1>
-        <p style="text-align: center; margin-bottom: 20px; color: #666;">
-            Plan your route and visualize sun exposure on your car - No API key required!
-        </p>
-        
-        <div class="inputs-section">
-            <div class="sun-tracking-group">
-                <h3>Sun Tracking Settings</h3>
-                <div class="sun-inputs">
-                    <label for="trip-date">Trip Start Date:</label>
-                    <input type="date" id="trip-date" class="date-input">
-                    <label for="trip-time">Start Time:</label>
-                    <input type="time" id="trip-time" class="time-input">
-                </div>
-                <div class="car-visualization-control">
-                    <label for="check-frequency">Sun Analysis Interval (km):</label>
-                    <input type="number" id="check-frequency" value="5" min="1" max="50" step="1" class="frequency-input">
-                </div>
-            </div>
-            
-            <div class="route-group">
-                <h3>Route</h3>
-                <input type="text" id="route-from" value="Budapest" class="route-input" placeholder="From">
-                <input type="text" id="route-to" value="Klenovica" class="route-input" placeholder="To">
-            </div>
-            
-            <button id="visualize-btn" class="visualize-button">Visualize Route & Sun Exposure</button>
+        <div class="header">
+            <h1>Route Sun Exposure Visualizer</h1>
+            <p>Plan your route and visualize sun exposure on your car - No API key required!</p>
         </div>
         
-        <div id="map" class="map-container"></div>
-        <div id="status" class="status-message"></div>
-        
-        <div id="car-summary" class="car-summary-container" style="display: none;">
-            <h3>Sun Exposure Summary</h3>
-            <div class="car-box-visualization">
-                <div class="car-box">
-                    <!-- Front side -->
-                    <div class="car-side car-front" id="summary-front">
-                        <span class="side-label">FRONT</span>
-                        <span class="side-percentage" id="front-percentage">0%</span>
+        <div class="main-content">
+            <!-- Sidebar with controls -->
+            <div class="sidebar">
+                <div class="route-group">
+                    <h3>Route</h3>
+                    <div class="route-inputs">
+                        <input type="text" id="route-from" value="Budapest" class="route-input" placeholder="From">
+                        <input type="text" id="route-to" value="Klenovica" class="route-input" placeholder="To">
                     </div>
-                    
-                    <!-- Left side -->
-                    <div class="car-side car-left" id="summary-left">
-                        <span class="side-label">LEFT</span>
-                        <span class="side-percentage" id="left-percentage">0%</span>
+                </div>
+                
+                <div class="sun-tracking-group">
+                    <h3>Sun Tracking Settings</h3>
+                    <div class="sun-inputs">
+                        <div class="input-group">
+                            <label for="trip-date">Trip Start Date</label>
+                            <input type="date" id="trip-date" class="date-input">
+                        </div>
+                        <div class="input-group">
+                            <label for="trip-time">Start Time</label>
+                            <input type="time" id="trip-time" class="time-input">
+                        </div>
                     </div>
-                    
-                    <!-- Center area -->
-                    <div class="car-center">
-                        <span>🚗</span>
+                    <div class="car-visualization-control">
+                        <label for="check-frequency">Sun Analysis Interval (km):</label>
+                        <input type="number" id="check-frequency" value="5" min="1" max="50" step="1" class="frequency-input">
                     </div>
-                    
-                    <!-- Right side -->
-                    <div class="car-side car-right" id="summary-right">
-                        <span class="side-label">RIGHT</span>
-                        <span class="side-percentage" id="right-percentage">0%</span>
-                    </div>
-                    
-                    <!-- Back side -->
-                    <div class="car-side car-back" id="summary-back">
-                        <span class="side-label">BACK</span>
-                        <span class="side-percentage" id="back-percentage">0%</span>
+                </div>
+                
+                <button id="visualize-btn" class="visualize-button">Visualize Route & Sun Exposure</button>
+            </div>
+            
+            <!-- Map section -->
+            <div class="map-section">
+                <div id="map" class="map-container"></div>
+                <div id="status" class="status-message"></div>
+            </div>
+            
+            <!-- Results panel -->
+            <div class="results-panel">
+                <div id="car-summary" class="car-summary-container" style="display: none;">
+                    <h3>Sun Exposure Summary</h3>
+                    <div class="car-box-visualization">
+                        <div class="car-box">
+                            <!-- Front side -->
+                            <div class="car-side car-front" id="summary-front">
+                                <span class="side-label">FRONT</span>
+                                <span class="side-percentage" id="front-percentage">0%</span>
+                            </div>
+                            
+                            <!-- Left side -->
+                            <div class="car-side car-left" id="summary-left">
+                                <span class="side-label">LEFT</span>
+                                <span class="side-percentage" id="left-percentage">0%</span>
+                            </div>
+                            
+                            <!-- Center area -->
+                            <div class="car-center">
+                                <span>🚗</span>
+                            </div>
+                            
+                            <!-- Right side -->
+                            <div class="car-side car-right" id="summary-right">
+                                <span class="side-label">RIGHT</span>
+                                <span class="side-percentage" id="right-percentage">0%</span>
+                            </div>
+                            
+                            <!-- Back side -->
+                            <div class="car-side car-back" id="summary-back">
+                                <span class="side-label">BACK</span>
+                                <span class="side-percentage" id="back-percentage">0%</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
