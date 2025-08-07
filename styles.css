@@ -77,68 +77,36 @@ h1 {
     border-color: #f39c12;
 }
 
-.dome-size-control {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #e9ecef;
-}
-
-.dome-size-control label {
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 8px;
-    display: block;
-}
-
-.slider-container {
+.car-visualization-control {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 15px;
+    padding: 15px;
+    background-color: #f0f8ff;
+    border-radius: 6px;
+    border: 2px solid #e6f3ff;
+    justify-content: center;
 }
 
-.slider-label {
-    font-size: 12px;
-    color: #6c757d;
-    min-width: 35px;
-}
-
-.dome-slider {
-    flex: 1;
-    height: 6px;
-    background: #e9ecef;
-    border-radius: 3px;
-    outline: none;
-    -webkit-appearance: none;
-}
-
-.dome-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    background: #f39c12;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.dome-slider::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    background: #f39c12;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.slider-value {
-    font-size: 12px;
+.car-visualization-control label {
     font-weight: 600;
-    color: #f39c12;
-    min-width: 40px;
+    color: #495057;
+}
+
+.frequency-input {
+    padding: 8px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 80px;
     text-align: center;
 }
+
+.frequency-input:focus {
+    outline: none;
+    border-color: #17a2b8;
+}
+
 
 .route-group {
     display: flex;
@@ -233,6 +201,137 @@ h1 {
     border: 1px solid #bee5eb;
 }
 
+/* Summary Car visualization styles */
+.car-summary-container {
+    background: white;
+    margin-top: 20px;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.car-summary-container h3 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+    font-size: 24px;
+}
+
+.car-box-visualization {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.car-box {
+    display: grid;
+    grid-template-areas: 
+        ". front ."
+        "left center right"
+        ". back .";
+    gap: 5px;
+    padding: 20px;
+}
+
+.car-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border: 2px solid #333;
+    border-radius: 8px;
+    background-color: #ffffff;
+    transition: background-color 0.5s ease;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.car-front {
+    grid-area: front;
+    width: 120px;
+    height: 60px;
+}
+
+.car-back {
+    grid-area: back;
+    width: 120px;
+    height: 60px;
+}
+
+.car-left {
+    grid-area: left;
+    width: 60px;
+    height: 120px;
+}
+
+.car-right {
+    grid-area: right;
+    width: 60px;
+    height: 120px;
+}
+
+
+.car-center {
+    grid-area: center;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 48px;
+}
+
+.side-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #495057;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.side-percentage {
+    font-size: 18px;
+    font-weight: bold;
+    color: #000;
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+}
+
+
+.exposure-legend {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    font-size: 12px;
+    z-index: 1001;
+}
+
+.exposure-legend h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 14px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin: 5px 0;
+}
+
+.legend-color {
+    width: 20px;
+    height: 15px;
+    margin-right: 8px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
 @media (max-width: 768px) {
     .inputs-section {
         grid-template-columns: 1fr;
@@ -241,5 +340,9 @@ h1 {
     
     .container {
         padding: 10px;
+    }
+    
+    .car-visualization {
+        transform: scale(0.8);
     }
 }

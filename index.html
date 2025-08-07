@@ -28,14 +28,9 @@
                         <option value="route2">Route 2</option>
                     </select>
                 </div>
-                <div class="dome-size-control">
-                    <label for="dome-size-slider">Sky Dome Size:</label>
-                    <div class="slider-container">
-                        <span class="slider-label">Small</span>
-                        <input type="range" id="dome-size-slider" min="0.1" max="3" value="1" step="0.1" class="dome-slider">
-                        <span class="slider-label">Large</span>
-                        <span class="slider-value" id="dome-size-value">1.0x</span>
-                    </div>
+                <div class="car-visualization-control">
+                    <label for="check-frequency">Sun Analysis Interval (km):</label>
+                    <input type="number" id="check-frequency" value="5" min="1" max="50" step="1" class="frequency-input">
                 </div>
             </div>
             
@@ -51,12 +46,47 @@
                 <input type="text" id="route2-to" value="Klenovica" class="route-input">
             </div>
             
-            <button id="visualize-btn" class="visualize-button">Visualize Routes</button>
-            <button id="track-sun-btn" class="track-sun-button">Track Sun Position</button>
+            <button id="visualize-btn" class="visualize-button">Visualize Routes & Sun Exposure</button>
         </div>
         
         <div id="map" class="map-container"></div>
         <div id="status" class="status-message"></div>
+        
+        <div id="car-summary" class="car-summary-container" style="display: none;">
+            <h3>Sun Exposure Summary</h3>
+            <div class="car-box-visualization">
+                <div class="car-box">
+                    <!-- Front side -->
+                    <div class="car-side car-front" id="summary-front">
+                        <span class="side-label">FRONT</span>
+                        <span class="side-percentage" id="front-percentage">0%</span>
+                    </div>
+                    
+                    <!-- Left side -->
+                    <div class="car-side car-left" id="summary-left">
+                        <span class="side-label">LEFT</span>
+                        <span class="side-percentage" id="left-percentage">0%</span>
+                    </div>
+                    
+                    <!-- Center area -->
+                    <div class="car-center">
+                        <span>🚗</span>
+                    </div>
+                    
+                    <!-- Right side -->
+                    <div class="car-side car-right" id="summary-right">
+                        <span class="side-label">RIGHT</span>
+                        <span class="side-percentage" id="right-percentage">0%</span>
+                    </div>
+                    
+                    <!-- Back side -->
+                    <div class="car-side car-back" id="summary-back">
+                        <span class="side-label">BACK</span>
+                        <span class="side-percentage" id="back-percentage">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

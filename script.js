@@ -5,6 +5,8 @@ let route1Data = null;
 let route2Data = null;
 let sunMarkers = [];
 let currentSunPositions = [];
+let carVisualizationMarkers = [];
+let exposureLegend = null;
 
 function initMap() {
     map = L.map('map').setView(CONFIG.DEFAULT_CENTER, CONFIG.DEFAULT_ZOOM);
@@ -14,7 +16,6 @@ function initMap() {
     }).addTo(map);
     
     document.getElementById('visualize-btn').addEventListener('click', visualizeRoutes);
-    document.getElementById('track-sun-btn').addEventListener('click', trackSunPosition);
     
     // Add zoom event listener to refresh sun markers with new scale
     map.on('zoomend', function() {
@@ -34,22 +35,7 @@ function initMap() {
     document.getElementById('trip-date').value = today.toISOString().split('T')[0];
     document.getElementById('trip-time').value = '08:00';
     
-    // Add slider event listener for real-time dome size adjustment
-    const domeSlider = document.getElementById('dome-size-slider');
-    const domeValue = document.getElementById('dome-size-value');
-    
-    // Set initial display value
-    domeValue.textContent = domeSlider.value + 'x';
-    
-    domeSlider.addEventListener('input', function() {
-        const value = parseFloat(this.value);
-        domeValue.textContent = value.toFixed(1) + 'x';
-        
-        // Refresh sun visualization with new size if sun positions exist
-        if (currentSunPositions.length > 0) {
-            refreshSunVisualization();
-        }
-    });
+    // Initialize default date and time values
     
     showStatus('Map initialized using OpenStreetMap. Enter your routes and click "Visualize Routes".', 'info');
 }
@@ -269,9 +255,17 @@ async function visualizeRoutes() {
         const route2Distance = (route2Data.distance / 1000).toFixed(1);
         
         showStatus(
-            `Routes calculated successfully! 🔵 Route 1: ${route1Distance}km (${route1Time}) | 🔴 Route 2: ${route2Distance}km (${route2Time}) | Click routes for details`, 
+            `Routes calculated successfully! 🔵 Route 1: ${route1Distance}km (${route1Time}) | 🔴 Route 2: ${route2Distance}km (${route2Time})`, 
             'success'
         );
+        
+        // Automatically calculate sun positions and car exposure after routes are ready
+        setTimeout(() => {
+            trackSunPosition();
+            setTimeout(() => {
+                showCarSunExposure();
+            }, 1000);
+        }, 500);
         
     } catch (error) {
         showStatus(error.message, 'error');
@@ -290,6 +284,7 @@ function clearPreviousRoutes() {
         route2Layer = null;
     }
     clearSunMarkers();
+    clearCarVisualization();
     currentSunPositions = [];
     route1Data = null;
     route2Data = null;
@@ -550,7 +545,7 @@ function createSkyDomeVisualization(sunPos, index) {
     
     // Create sky dome with reasonable radius but enhanced difference
     const currentZoom = map.getZoom();
-    const userSizeMultiplier = parseFloat(document.getElementById('dome-size-slider').value);
+    const userSizeMultiplier = 1.0; // Default size multiplier since slider was removed
     const baseRadius = 3000; // Moderate increase from original 2000m for better visibility
     const zoomFactor = Math.pow(2, (11 - currentZoom)); // Scale inversely with zoom
     const horizonRadius = Math.max(200, baseRadius * zoomFactor * userSizeMultiplier); // Reasonable minimum
@@ -738,6 +733,282 @@ function refreshSunVisualization() {
         visualizeSunPositions(currentSunPositions);
         console.log(`Refreshed sun visualization with ${currentSunPositions.length} positions at zoom level ${map.getZoom()}`);
     }
+}
+
+function showCarSunExposure() {
+    const selectedRoute = document.getElementById('selected-route').value;
+    const tripDate = document.getElementById('trip-date').value;
+    const tripTime = document.getElementById('trip-time').value;
+    const checkFrequency = parseInt(document.getElementById('check-frequency').value) || 5;
+    
+    if (!tripDate || !tripTime) {
+        showStatus('Please select both date and time for the trip start.', 'error');
+        return;
+    }
+    
+    const routeData = selectedRoute === 'route1' ? route1Data : route2Data;
+    
+    if (!routeData) {
+        showStatus('Please calculate routes first by clicking "Visualize Routes".', 'error');
+        return;
+    }
+    
+    clearCarVisualization();
+    
+    const startDateTime = new Date(tripDate + 'T' + tripTime + ':00');
+    showStatus('Calculating car sun exposure...', 'info');
+    
+    setTimeout(() => {
+        const carExposureData = calculateCarSunExposure(routeData.path, startDateTime, checkFrequency);
+        visualizeCarSunExposure(carExposureData);
+        showStatus(`Car sun exposure calculated for ${carExposureData.length} points along ${selectedRoute === 'route1' ? 'Route 1' : 'Route 2'}.`, 'success');
+    }, 500);
+}
+
+function calculateCarSunExposure(routePath, startDate, intervalKm) {
+    const carExposureData = [];
+    let totalDistance = 0;
+    let currentSegmentDistance = 0;
+    let timeOffset = 0;
+    const averageSpeedKmh = 80;
+    
+    for (let i = 0; i < routePath.length - 1; i++) {
+        const segmentDistance = getDistance(routePath[i], routePath[i + 1]) / 1000;
+        currentSegmentDistance += segmentDistance;
+        
+        if (currentSegmentDistance >= intervalKm || i === routePath.length - 2) {
+            totalDistance += currentSegmentDistance;
+            
+            const position = routePath[i];
+            const timeAtPosition = new Date(startDate.getTime() + (timeOffset * 60 * 60 * 1000));
+            const sunPosition = calculateSunPosition(position[0], position[1], timeAtPosition);
+            
+            // Calculate car orientation (bearing to next point)
+            let carBearing = 0;
+            if (i < routePath.length - 1) {
+                carBearing = calculateBearing(routePath[i], routePath[i + 1]);
+            } else if (i > 0) {
+                carBearing = calculateBearing(routePath[i - 1], routePath[i]);
+            }
+            
+            const isDaylight = sunPosition.elevation > 0;
+            
+            let carSideExposures = {
+                front: 0, back: 0, left: 0, right: 0
+            };
+            
+            if (isDaylight) {
+                carSideExposures = calculateCarSideExposures(sunPosition, carBearing);
+            }
+            
+            carExposureData.push({
+                location: position,
+                time: timeAtPosition,
+                distance: totalDistance,
+                sunAzimuth: sunPosition.azimuth,
+                sunElevation: sunPosition.elevation,
+                carBearing: carBearing,
+                isDaylight: isDaylight,
+                exposures: carSideExposures
+            });
+            
+            timeOffset += currentSegmentDistance / averageSpeedKmh;
+            currentSegmentDistance = 0;
+        }
+    }
+    
+    return carExposureData;
+}
+
+function calculateBearing(point1, point2) {
+    const lat1 = point1[0] * Math.PI / 180;
+    const lat2 = point2[0] * Math.PI / 180;
+    const deltaLng = (point2[1] - point1[1]) * Math.PI / 180;
+    
+    const y = Math.sin(deltaLng) * Math.cos(lat2);
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLng);
+    
+    let bearing = Math.atan2(y, x) * 180 / Math.PI;
+    return (bearing + 360) % 360;
+}
+
+function calculateCarSideExposures(sunPosition, carBearing) {
+    const sunAzimuth = sunPosition.azimuth;
+    const sunElevation = Math.max(0, sunPosition.elevation);
+    
+    // Calculate relative sun position to car (0° = front of car, 90° = right, 180° = back, 270° = left)
+    let relativeSunAngle = (sunAzimuth - carBearing + 360) % 360;
+    
+    // Normalize elevation to exposure factor (higher sun = more intense exposure)
+    const elevationFactor = Math.sin(sunElevation * Math.PI / 180);
+    
+    // Calculate raw exposure values for each side
+    const rawExposures = {
+        front: 0,
+        back: 0,
+        left: 0,
+        right: 0
+    };
+    
+    // Front side: maximum exposure when sun is ahead (0°±90°)
+    const frontAngle = Math.min(relativeSunAngle, 360 - relativeSunAngle);
+    if (frontAngle <= 90) {
+        rawExposures.front = Math.cos(frontAngle * Math.PI / 180);
+    }
+    
+    // Back side: maximum exposure when sun is behind (180°±90°)
+    const backAngle = Math.abs(relativeSunAngle - 180);
+    if (backAngle <= 90) {
+        rawExposures.back = Math.cos(backAngle * Math.PI / 180);
+    }
+    
+    // Left side: maximum when sun is at 270°±90° (left side of car)
+    const leftAngle = Math.abs(relativeSunAngle - 270);
+    if (leftAngle <= 90 || leftAngle >= 270) {
+        const actualLeftAngle = leftAngle > 180 ? 360 - leftAngle : leftAngle;
+        rawExposures.left = Math.cos(actualLeftAngle * Math.PI / 180);
+    }
+    
+    // Right side: maximum when sun is at 90°±90° (right side of car)
+    const rightAngle = Math.abs(relativeSunAngle - 90);
+    if (rightAngle <= 90) {
+        rawExposures.right = Math.cos(rightAngle * Math.PI / 180);
+    }
+    
+    // Calculate total exposure and normalize to percentages that add up to 100%
+    const totalExposure = rawExposures.front + rawExposures.back + rawExposures.left + rawExposures.right;
+    
+    const exposures = {
+        front: 0,
+        back: 0,
+        left: 0,
+        right: 0
+    };
+    
+    if (totalExposure > 0) {
+        // Normalize each side as a percentage of total exposure (always adds up to 100%)
+        exposures.front = rawExposures.front / totalExposure;
+        exposures.back = rawExposures.back / totalExposure;
+        exposures.left = rawExposures.left / totalExposure;
+        exposures.right = rawExposures.right / totalExposure;
+    }
+    
+    return exposures;
+}
+
+function getExposureColor(exposureLevel) {
+    // Map exposure level (0-1) to color gradient (white to red)
+    const intensity = Math.max(0, Math.min(1, exposureLevel));
+    
+    if (intensity === 0) {
+        return '#ffffff'; // White for no exposure
+    }
+    
+    // Gradient from white to red
+    const red = 255;
+    const green = Math.round(255 * (1 - intensity));
+    const blue = Math.round(255 * (1 - intensity));
+    
+    return `rgb(${red}, ${green}, ${blue})`;
+}
+
+function visualizeCarSunExposure(carExposureData) {
+    // Console logging for debugging
+    console.log('=== CAR SUN EXPOSURE ANALYSIS ===');
+    console.log(`Analyzed ${carExposureData.length} points along the route:`);
+    
+    carExposureData.forEach((carData, index) => {
+        const timeString = carData.time.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+        
+        console.log(`\n--- Point ${index + 1} at ${timeString} ---`);
+        console.log(`Location: [${carData.location[0].toFixed(4)}, ${carData.location[1].toFixed(4)}]`);
+        console.log(`Distance: ${carData.distance.toFixed(1)} km from start`);
+        console.log(`Car direction: ${getCompassDirection(carData.carBearing)} (${carData.carBearing.toFixed(1)}°)`);
+        console.log(`Sun position: ${getCompassDirection(carData.sunAzimuth)} (${carData.sunAzimuth.toFixed(1)}°), ${carData.sunElevation.toFixed(1)}° elevation`);
+        console.log(`Daylight: ${carData.isDaylight}`);
+        
+        if (carData.isDaylight) {
+            console.log('Sun exposure levels:');
+            console.log(`  Front: ${(carData.exposures.front * 100).toFixed(1)}%`);
+            console.log(`  Back: ${(carData.exposures.back * 100).toFixed(1)}%`);
+            console.log(`  Left: ${(carData.exposures.left * 100).toFixed(1)}%`);
+            console.log(`  Right: ${(carData.exposures.right * 100).toFixed(1)}%`);
+        } else {
+            console.log('  No sun exposure (nighttime)');
+        }
+    });
+    
+    // Calculate averages and update summary visualization
+    updateSummaryVisualization(carExposureData);
+}
+
+function updateSummaryVisualization(carExposureData) {
+    // Calculate average exposures for each side
+    const daylightData = carExposureData.filter(data => data.isDaylight);
+    
+    if (daylightData.length === 0) {
+        // No daylight data - show all sides as dark
+        document.getElementById('summary-front').style.backgroundColor = '#555';
+        document.getElementById('summary-back').style.backgroundColor = '#555';
+        document.getElementById('summary-left').style.backgroundColor = '#555';
+        document.getElementById('summary-right').style.backgroundColor = '#555';
+        
+        document.getElementById('front-percentage').textContent = '0%';
+        document.getElementById('back-percentage').textContent = '0%';
+        document.getElementById('left-percentage').textContent = '0%';
+        document.getElementById('right-percentage').textContent = '0%';
+    } else {
+        // Calculate averages
+        const avgExposures = {
+            front: daylightData.reduce((sum, data) => sum + data.exposures.front, 0) / daylightData.length,
+            back: daylightData.reduce((sum, data) => sum + data.exposures.back, 0) / daylightData.length,
+            left: daylightData.reduce((sum, data) => sum + data.exposures.left, 0) / daylightData.length,
+            right: daylightData.reduce((sum, data) => sum + data.exposures.right, 0) / daylightData.length
+        };
+        
+        // Update box visualization colors using background color
+        document.getElementById('summary-front').style.backgroundColor = getExposureColor(avgExposures.front);
+        document.getElementById('summary-back').style.backgroundColor = getExposureColor(avgExposures.back);
+        document.getElementById('summary-left').style.backgroundColor = getExposureColor(avgExposures.left);
+        document.getElementById('summary-right').style.backgroundColor = getExposureColor(avgExposures.right);
+        
+        // Update percentages displayed on each side
+        document.getElementById('front-percentage').textContent = `${(avgExposures.front * 100).toFixed(0)}%`;
+        document.getElementById('back-percentage').textContent = `${(avgExposures.back * 100).toFixed(0)}%`;
+        document.getElementById('left-percentage').textContent = `${(avgExposures.left * 100).toFixed(0)}%`;
+        document.getElementById('right-percentage').textContent = `${(avgExposures.right * 100).toFixed(0)}%`;
+        
+        // Find which side gets most/least sun for console logging
+        const exposureEntries = Object.entries(avgExposures);
+        const maxExposure = exposureEntries.reduce((max, [side, value]) => value > max.value ? {side, value} : max, {side: '', value: -1});
+        const minExposure = exposureEntries.reduce((min, [side, value]) => value < min.value ? {side, value} : min, {side: '', value: 2});
+        
+        console.log('\n=== TRIP SUMMARY ===');
+        console.log(`Average sun exposure levels:`);
+        console.log(`  Front: ${(avgExposures.front * 100).toFixed(1)}%`);
+        console.log(`  Back: ${(avgExposures.back * 100).toFixed(1)}%`);
+        console.log(`  Left: ${(avgExposures.left * 100).toFixed(1)}%`);
+        console.log(`  Right: ${(avgExposures.right * 100).toFixed(1)}%`);
+        console.log(`Most exposed side: ${maxExposure.side} (${(maxExposure.value * 100).toFixed(1)}%)`);
+        console.log(`Least exposed side: ${minExposure.side} (${(minExposure.value * 100).toFixed(1)}%)`);
+    }
+    
+    // Show the summary container
+    document.getElementById('car-summary').style.display = 'block';
+}
+
+function clearCarVisualization() {
+    // Hide the summary container
+    document.getElementById('car-summary').style.display = 'none';
+    
+    // Clear any remaining markers (though we're not using them anymore)
+    carVisualizationMarkers.forEach(marker => {
+        map.removeLayer(marker);
+    });
+    carVisualizationMarkers = [];
 }
 
 window.onload = initMap;
