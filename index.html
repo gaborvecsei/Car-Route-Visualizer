@@ -3,64 +3,259 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi Maps Route Visualizer</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>Route Sun Exposure Visualizer - Plan Your Trip with Real-Time Sun Analysis</title>
+    <meta name="description" content="Visualize sun exposure on different sides of your car during road trips. Free route planning with real-time sun position analysis. No API key required!">
+    <meta name="keywords" content="sun exposure, route planning, trip planner, car sun protection, driving routes, solar analysis, travel planning">
+    <meta name="author" content="Route Sun Exposure Visualizer">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://yourdomain.com">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourdomain.com">
+    <meta property="og:title" content="Route Sun Exposure Visualizer - Plan Your Trip with Real-Time Sun Analysis">
+    <meta property="og:description" content="Visualize sun exposure on different sides of your car during road trips. Free route planning with real-time sun position analysis.">
+    <meta property="og:image" content="https://yourdomain.com/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="Route Sun Exposure Visualizer">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://yourdomain.com">
+    <meta property="twitter:title" content="Route Sun Exposure Visualizer - Plan Your Trip">
+    <meta property="twitter:description" content="Visualize sun exposure on different sides of your car during road trips. Free route planning with real-time sun position analysis.">
+    <meta property="twitter:image" content="https://yourdomain.com/og-image.jpg">
+    
+    <!-- Favicon and App Icons -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☀️</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☀️</text></svg>">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="theme-color" content="#1976d2">
+    <meta name="msapplication-TileColor" content="#1976d2">
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://unpkg.com">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Route Sun Exposure Visualizer",
+        "description": "Visualize sun exposure on different sides of your car during road trips. Free route planning with real-time sun position analysis.",
+        "url": "https://yourdomain.com",
+        "applicationCategory": "TravelApplication",
+        "operatingSystem": "Web Browser",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "featureList": [
+            "Real-time sun position tracking",
+            "Route planning",
+            "Car-side sun exposure visualization",
+            "No API key required"
+        ]
+    }
+    </script>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="container">
-        <h1>Multi Maps Route Visualizer</h1>
-        <p style="text-align: center; margin-bottom: 20px; color: #666;">
-            Using OpenStreetMap - No API key required!
-        </p>
+        <header class="header" role="banner">
+            <h1>☀️ Sun Exposure Route Planner</h1>
+            <p>Discover which side of your car gets hit by sun during your journey!</p>
+        </header>
         
-        <div class="inputs-section">
-            <div class="sun-tracking-group">
-                <h3>Sun Tracking Settings</h3>
-                <div class="sun-inputs">
-                    <label for="trip-date">Trip Start Date:</label>
-                    <input type="date" id="trip-date" class="date-input">
-                    <label for="trip-time">Start Time:</label>
-                    <input type="time" id="trip-time" class="time-input">
-                    <label for="selected-route">Route to Track:</label>
-                    <select id="selected-route" class="route-select">
-                        <option value="route1">Route 1</option>
-                        <option value="route2">Route 2</option>
-                    </select>
-                </div>
-                <div class="dome-size-control">
-                    <label for="dome-size-slider">Sky Dome Size:</label>
-                    <div class="slider-container">
-                        <span class="slider-label">Small</span>
-                        <input type="range" id="dome-size-slider" min="0.1" max="3" value="1" step="0.1" class="dome-slider">
-                        <span class="slider-label">Large</span>
-                        <span class="slider-value" id="dome-size-value">1.0x</span>
+        <main id="main-content" class="main-content" role="main">
+            <!-- Sidebar with controls -->
+            <section class="sidebar" aria-label="Route and sun tracking controls">
+                <div class="route-group">
+                    <h3>Route</h3>
+                    <div class="route-inputs">
+                        <label for="route-from" class="visually-hidden">Starting location</label>
+                        <input type="text" id="route-from" value="Budapest" class="route-input" placeholder="From" aria-describedby="route-from-help">
+                        <div id="route-from-help" class="sr-only">Enter your starting location</div>
+                        <label for="route-to" class="visually-hidden">Destination</label>
+                        <input type="text" id="route-to" value="Klenovica" class="route-input" placeholder="To" aria-describedby="route-to-help">
+                        <div id="route-to-help" class="sr-only">Enter your destination</div>
                     </div>
                 </div>
-            </div>
+                
+                <div class="sun-tracking-group">
+                    <h3>Settings</h3>
+                    <div class="sun-inputs">
+                        <div class="input-group">
+                            <label for="trip-date">Date</label>
+                            <input type="date" id="trip-date" class="date-input">
+                        </div>
+                        <div class="input-group">
+                            <label for="trip-time">Start Time</label>
+                            <input type="time" id="trip-time" class="time-input">
+                        </div>
+                    </div>
+                    <div class="car-visualization-control">
+                        <label for="check-frequency">Check every (km):</label>
+                        <input type="number" id="check-frequency" value="5" min="1" max="50" step="1" class="frequency-input">
+                    </div>
+                </div>
+                
+                <button id="visualize-btn" class="visualize-button" type="button" aria-describedby="analyze-help">
+                    <span class="button-icon">☀️</span>
+                    Get Sun Analysis
+                </button>
+                <div id="analyze-help" class="sr-only">Calculate sun exposure for your planned route</div>
+            </section>
             
-            <div class="route-group">
-                <h3>Route 1</h3>
-                <input type="text" id="route1-from" value="Budapest" class="route-input">
-                <input type="text" id="route1-to" value="Klenovica" class="route-input">
-            </div>
+            <!-- Map section -->
+            <section class="map-section" aria-label="Interactive map">
+                <div id="map" class="map-container" role="img" aria-label="Interactive route map"></div>
+                <div id="status" class="status-message" role="status" aria-live="polite"></div>
+            </section>
             
-            <div class="route-group">
-                <h3>Route 2</h3>
-                <input type="text" id="route2-from" value="Pecs" class="route-input">
-                <input type="text" id="route2-to" value="Klenovica" class="route-input">
-            </div>
-            
-            <button id="visualize-btn" class="visualize-button">Visualize Routes</button>
-            <button id="track-sun-btn" class="track-sun-button">Track Sun Position</button>
-        </div>
+            <!-- Results panel -->
+            <aside class="results-panel" aria-label="Sun exposure analysis results">
+                <!-- Placeholder when no results -->
+                <div id="results-placeholder" class="results-placeholder">
+                    <div class="placeholder-content">
+                        <div class="placeholder-icon">📊</div>
+                        <h3>Sun Exposure Results</h3>
+                        <p>Click "Get Sun Analysis" to see which sides of your car will catch the most sun!</p>
+                        <div class="placeholder-features">
+                            <div class="feature-item">
+                                <span class="feature-icon">🌅</span>
+                                <span>Live sun tracking</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🎯</span>
+                                <span>Exact percentages</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🚗</span>
+                                <span>Per-side breakdown</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Results container -->
+                <div id="car-summary" class="car-summary-container" style="display: none;">
+                    <h3>Sun Exposure Summary</h3>
+                    <div class="car-box-visualization">
+                        <div class="car-box">
+                            <!-- Front side -->
+                            <div class="car-side car-front" id="summary-front">
+                                <span class="side-label">FRONT</span>
+                                <span class="side-percentage" id="front-percentage">0%</span>
+                            </div>
+                            
+                            <!-- Left side -->
+                            <div class="car-side car-left" id="summary-left">
+                                <span class="side-label">LEFT</span>
+                                <span class="side-percentage" id="left-percentage">0%</span>
+                            </div>
+                            
+                            <!-- Center area -->
+                            <div class="car-center">
+                                <span>🚗</span>
+                            </div>
+                            
+                            <!-- Right side -->
+                            <div class="car-side car-right" id="summary-right">
+                                <span class="side-label">RIGHT</span>
+                                <span class="side-percentage" id="right-percentage">0%</span>
+                            </div>
+                            
+                            <!-- Back side -->
+                            <div class="car-side car-back" id="summary-back">
+                                <span class="side-label">BACK</span>
+                                <span class="side-percentage" id="back-percentage">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </main>
         
-        <div id="map" class="map-container"></div>
-        <div id="status" class="status-message"></div>
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2025 Route Sun Exposure Visualizer | 
+                    <a href="https://github.com/yourusername/route-sun-exposure">GitHub</a> | 
+                    <span class="disclaimer">For planning purposes only</span>
+                </p>
+            </div>
+        </footer>
     </div>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="config.js"></script>
     <script src="script.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful:', registration.scope);
+                        
+                        // Handle updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // Show update notification
+                                    if (confirm('A new version is available. Refresh to update?')) {
+                                        newWorker.postMessage({type: 'SKIP_WAITING'});
+                                        window.location.reload();
+                                    }
+                                }
+                            });
+                        });
+                    })
+                    .catch(function(error) {
+                        console.log('ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+    
+    <!-- Google Analytics (replace GA_MEASUREMENT_ID with your actual ID) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'GA_MEASUREMENT_ID', {
+            page_title: 'Route Sun Exposure Visualizer',
+            custom_map: {custom_parameter_1: 'route_analysis'}
+        });
+        
+        // Error tracking
+        window.addEventListener('error', function(e) {
+            gtag('event', 'exception', {
+                description: e.message,
+                fatal: false,
+                file: e.filename,
+                line: e.lineno
+            });
+        });
+        
+        // Track unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(e) {
+            gtag('event', 'exception', {
+                description: 'Unhandled Promise Rejection: ' + e.reason,
+                fatal: false
+            });
+        });
+    </script>
 </body>
 </html>
