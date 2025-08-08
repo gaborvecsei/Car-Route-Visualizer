@@ -293,6 +293,99 @@ h1 {
     transform: translateY(0);
 }
 
+.visualize-button.loading {
+    background: linear-gradient(135deg, #90a4ae 0%, #78909c 100%);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.visualize-button.loading:hover {
+    background: linear-gradient(135deg, #90a4ae 0%, #78909c 100%);
+    transform: none;
+    box-shadow: 0 2px 8px rgba(25,118,210,0.3);
+}
+
+/* Input error states */
+.route-input.error,
+.date-input.error,
+.time-input.error,
+.frequency-input.error {
+    border-color: #d32f2f;
+    background-color: #ffebee;
+    box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
+}
+
+.route-input.error:focus,
+.date-input.error:focus,
+.time-input.error:focus,
+.frequency-input.error:focus {
+    border-color: #d32f2f;
+    box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.2);
+}
+
+/* Loading animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.button-icon {
+    display: inline-block;
+    animation: none;
+}
+
+.loading .button-icon {
+    animation: spin 1s linear infinite;
+}
+
+/* Improved status message positioning */
+.status-message {
+    transition: opacity 0.3s ease;
+}
+
+.status-message:empty {
+    display: none;
+}
+
+/* Footer */
+.footer {
+    background: #f5f5f5;
+    border-top: 1px solid #e0e0e0;
+    padding: 16px 24px;
+    margin-top: auto;
+}
+
+.footer-content {
+    text-align: center;
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.footer-content a {
+    color: #1976d2;
+    text-decoration: none;
+}
+
+.footer-content a:hover {
+    text-decoration: underline;
+}
+
+.disclaimer {
+    font-style: italic;
+    color: #999;
+}
+
+@media (max-width: 768px) {
+    .footer {
+        padding: 12px 16px;
+    }
+    
+    .footer-content {
+        font-size: 0.75rem;
+        line-height: 1.4;
+    }
+}
+
 .visualize-button:disabled {
     background: #ffcc80;
     color: #8d6e63;
@@ -538,6 +631,34 @@ h1 {
     font-weight: 600;
     color: #1976d2;
     font-family: 'Roboto', sans-serif;
+}
+
+/* Sun exposure color coding */
+.car-side.exposure-low {
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c8 100%);
+    border-color: #4caf50;
+}
+
+.car-side.exposure-low .side-percentage {
+    color: #2e7d32;
+}
+
+.car-side.exposure-medium {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border-color: #ff9800;
+}
+
+.car-side.exposure-medium .side-percentage {
+    color: #e65100;
+}
+
+.car-side.exposure-high {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    border-color: #f44336;
+}
+
+.car-side.exposure-high .side-percentage {
+    color: #c62828;
 }
 
 @media (max-width: 1024px) {

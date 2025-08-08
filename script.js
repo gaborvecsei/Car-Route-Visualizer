@@ -5,6 +5,49 @@ let sunMarkers = [];
 let currentSunPositions = [];
 let carVisualizationMarkers = [];
 let exposureLegend = null;
+let isAnalyzing = false;
+let loadingTimeout = null;
+
+// Error handling and analytics
+function logError(error, context = '') {
+    console.error(`Error in ${context}:`, error);
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'exception', {
+            description: `${context}: ${error.message}`,
+            fatal: false
+        });
+    }
+}
+
+// Loading state management
+function setLoadingState(isLoading, message = '') {
+    const button = document.getElementById('visualize-btn');
+    
+    if (isLoading) {
+        button.disabled = true;
+        button.classList.add('loading');
+        button.innerHTML = `<span class="button-icon">⏳</span> ${message || 'Analyzing...'}`;
+        isAnalyzing = true;
+        
+        // Set timeout for long operations
+        if (loadingTimeout) clearTimeout(loadingTimeout);
+        loadingTimeout = setTimeout(() => {
+            if (isAnalyzing) {
+                showStatus('Analysis is taking longer than expected. Please wait...', 'info');
+            }
+        }, 15000);
+    } else {
+        button.disabled = false;
+        button.classList.remove('loading');
+        button.innerHTML = `<span class="button-icon">☀️</span> Analyze Sun Exposure`;
+        isAnalyzing = false;
+        
+        if (loadingTimeout) {
+            clearTimeout(loadingTimeout);
+            loadingTimeout = null;
+        }
+    }
+}
 
 function initMap() {
     map = L.map('map').setView(CONFIG.DEFAULT_CENTER, CONFIG.DEFAULT_ZOOM);
@@ -14,6 +57,19 @@ function initMap() {
     }).addTo(map);
     
     document.getElementById('visualize-btn').addEventListener('click', visualizeRoutes);
+    
+    // Add Enter key support for route inputs
+    document.getElementById('route-from').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            visualizeRoutes();
+        }
+    });
+    
+    document.getElementById('route-to').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            visualizeRoutes();
+        }
+    });
     
     // Add zoom event listener to refresh sun markers with new scale
     map.on('zoomend', function() {
@@ -35,7 +91,7 @@ function initMap() {
     
     // Initialize default date and time values
     
-    showStatus('Map initialized using OpenStreetMap. Enter your route and click "Visualize Route & Sun Exposure".', 'info');
+    showStatus('Map initialized. Enter your route and click "Analyze Sun Exposure".', 'info');
 }
 
 function showStatus(message, type = 'info') {
@@ -884,6 +940,24 @@ function getExposureColor(exposureLevel) {
     return `rgb(${red}, ${green}, ${blue})`;
 }
 
+function updateCarSideColor(elementId, exposureLevel) {
+    const element = document.getElementById(elementId);
+    const percentage = exposureLevel * 100;
+    
+    // Remove existing exposure classes
+    element.classList.remove('exposure-low', 'exposure-medium', 'exposure-high');
+    
+    // Add appropriate class based on exposure percentage
+    if (percentage >= 40) {
+        element.classList.add('exposure-high');
+    } else if (percentage >= 20) {
+        element.classList.add('exposure-medium');
+    } else if (percentage > 0) {
+        element.classList.add('exposure-low');
+    }
+    // If percentage is 0, no class is added (uses default styling)
+}
+
 function visualizeCarSunExposure(carExposureData) {
     // Console logging for debugging
     console.log('=== CAR SUN EXPOSURE ANALYSIS ===');
@@ -922,11 +996,11 @@ function updateSummaryVisualization(carExposureData) {
     const daylightData = carExposureData.filter(data => data.isDaylight);
     
     if (daylightData.length === 0) {
-        // No daylight data - show all sides as dark
-        document.getElementById('summary-front').style.backgroundColor = '#555';
-        document.getElementById('summary-back').style.backgroundColor = '#555';
-        document.getElementById('summary-left').style.backgroundColor = '#555';
-        document.getElementById('summary-right').style.backgroundColor = '#555';
+        // No daylight data - clear all exposure classes and show 0%
+        updateCarSideColor('summary-front', 0);
+        updateCarSideColor('summary-back', 0);
+        updateCarSideColor('summary-left', 0);
+        updateCarSideColor('summary-right', 0);
         
         document.getElementById('front-percentage').textContent = '0%';
         document.getElementById('back-percentage').textContent = '0%';
@@ -941,11 +1015,11 @@ function updateSummaryVisualization(carExposureData) {
             right: daylightData.reduce((sum, data) => sum + data.exposures.right, 0) / daylightData.length
         };
         
-        // Update box visualization colors using background color
-        document.getElementById('summary-front').style.backgroundColor = getExposureColor(avgExposures.front);
-        document.getElementById('summary-back').style.backgroundColor = getExposureColor(avgExposures.back);
-        document.getElementById('summary-left').style.backgroundColor = getExposureColor(avgExposures.left);
-        document.getElementById('summary-right').style.backgroundColor = getExposureColor(avgExposures.right);
+        // Update box visualization colors using CSS classes based on exposure levels
+        updateCarSideColor('summary-front', avgExposures.front);
+        updateCarSideColor('summary-back', avgExposures.back);
+        updateCarSideColor('summary-left', avgExposures.left);
+        updateCarSideColor('summary-right', avgExposures.right);
         
         // Update percentages displayed on each side
         document.getElementById('front-percentage').textContent = `${(avgExposures.front * 100).toFixed(0)}%`;
