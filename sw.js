@@ -2,13 +2,13 @@ const CACHE_NAME = 'sun-exposure-v1.0.0';
 const urlsToCache = [
     '/',
     '/index.html',
-    '/styles.css',
     '/script.js',
     '/config.js',
     '/site.webmanifest',
     'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap',
     'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+    'https://cdn.tailwindcss.com'
 ];
 
 // Install event - cache resources
