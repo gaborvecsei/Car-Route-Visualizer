@@ -22,8 +22,7 @@
     top: 6px;
 }
 
-.visually-hidden,
-.sr-only {
+.visually-hidden {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -161,7 +160,7 @@ h1 {
     margin-bottom: 4px;
 }
 
-.date-input, .time-input, .frequency-input {
+.date-input, .time-input, .frequency-input, .route-input {
     padding: 12px 16px;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
@@ -173,7 +172,7 @@ h1 {
     font-family: 'Roboto', sans-serif;
 }
 
-.date-input:focus, .time-input:focus, .frequency-input:focus {
+.date-input:focus, .time-input:focus, .frequency-input:focus, .route-input:focus {
     outline: none;
     border-color: #1976d2;
     background: #ffffff;
@@ -235,24 +234,6 @@ h1 {
     gap: 16px;
 }
 
-.route-input {
-    padding: 12px 16px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 16px;
-    transition: all 0.2s ease;
-    background: #ffffff;
-    color: #1a1a1a;
-    font-weight: 400;
-    font-family: 'Roboto', sans-serif;
-}
-
-.route-input:focus {
-    outline: none;
-    border-color: #1976d2;
-    background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(25,118,210,0.1);
-}
 
 .route-input::placeholder {
     color: #8d6e63;

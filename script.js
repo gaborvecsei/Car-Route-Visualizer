@@ -4,7 +4,6 @@ let routeData = null;
 let sunMarkers = [];
 let currentSunPositions = [];
 let carVisualizationMarkers = [];
-let exposureLegend = null;
 let isAnalyzing = false;
 let loadingTimeout = null;
 
@@ -89,9 +88,7 @@ function initMap() {
     document.getElementById('trip-date').value = today.toISOString().split('T')[0];
     document.getElementById('trip-time').value = '08:00';
     
-    // Initialize default date and time values
-    
-    showStatus('Map initialized. Enter your route and click "Analyze Sun Exposure".', 'info');
+        showStatus('Map initialized. Enter your route and click "Analyze Sun Exposure".', 'info');
 }
 
 function showStatus(message, type = 'info') {
@@ -680,74 +677,44 @@ function getSkyDescription(elevation) {
 }
 
 function getSunLineColor(elevation) {
-    // Create dramatic color gradient based on elevation
-    // High elevation (overhead) = bright red/magenta (short lines)
-    // Low elevation (horizon) = yellow/gold (long lines)
+    const colorRanges = [
+        { min: 70, color: '#FF0080' },
+        { min: 50, red: 255, green: [32, 0], blue: [128, 0] },
+        { min: 30, red: 255, green: [155, 100], blue: 0 },
+        { min: 10, red: 255, green: [255, 165], blue: 0 },
+        { min: 0, color: '#FFD700' }
+    ];
     
-    const normalizedElevation = Math.max(0, Math.min(90, elevation)) / 90; // 0 to 1
-    
-    if (elevation >= 70) {
-        // Very high sun (70-90°): Bright red/magenta - very short lines
-        return '#FF0080'; // Bright magenta-red
-    } else if (elevation >= 50) {
-        // High sun (50-70°): Red to red-orange
-        const factor = (elevation - 50) / 20; // 0 to 1
-        const red = 255;
-        const green = Math.round(32 * (1 - factor)); // 32 to 0
-        const blue = Math.round(128 * (1 - factor)); // 128 to 0
-        return `rgb(${red}, ${green}, ${blue})`;
-    } else if (elevation >= 30) {
-        // Medium-high sun (30-50°): Orange-red to orange
-        const factor = (elevation - 30) / 20; // 0 to 1
-        const red = 255;
-        const green = Math.round(100 + (55 * (1 - factor))); // 155 to 100
-        const blue = 0;
-        return `rgb(${red}, ${green}, ${blue})`;
-    } else if (elevation >= 10) {
-        // Medium-low sun (10-30°): Orange to yellow-orange
-        const factor = (elevation - 10) / 20; // 0 to 1
-        const red = 255;
-        const green = Math.round(165 + (90 * (1 - factor))); // 255 to 165
-        const blue = 0;
-        return `rgb(${red}, ${green}, ${blue})`;
-    } else {
-        // Low sun (0-10°): Yellow-gold - very long lines
-        return '#FFD700'; // Gold
+    for (const range of colorRanges) {
+        if (elevation >= range.min) {
+            if (range.color) return range.color;
+            const factor = (elevation - range.min) / 20;
+            const green = Math.round(range.green[1] + (range.green[0] - range.green[1]) * factor);
+            const blue = Array.isArray(range.blue) 
+                ? Math.round(range.blue[1] + (range.blue[0] - range.blue[1]) * factor)
+                : range.blue;
+            return `rgb(${range.red}, ${green}, ${blue})`;
+        }
     }
 }
 
 function getSunMarkerColors(elevation) {
-    // Similar gradient but with more intensity for sun markers
-    if (elevation >= 70) {
-        return {
-            background: 'radial-gradient(circle, #FF0080 0%, #FF4500 70%, #FF6B00 100%)',
-            border: '#FF0080',
-            shadow: 'rgba(255, 0, 128, 0.8)'
-        };
-    } else if (elevation >= 50) {
-        return {
-            background: 'radial-gradient(circle, #FF4500 0%, #FF6B00 70%, #FF8C00 100%)',
-            border: '#FF4500',
-            shadow: 'rgba(255, 69, 0, 0.8)'
-        };
-    } else if (elevation >= 30) {
-        return {
-            background: 'radial-gradient(circle, #FF8C00 0%, #FFA500 70%, #FFB84D 100%)',
-            border: '#FF8C00',
-            shadow: 'rgba(255, 140, 0, 0.8)'
-        };
-    } else if (elevation >= 10) {
-        return {
-            background: 'radial-gradient(circle, #FFA500 0%, #FFD700 70%, #FFEB99 100%)',
-            border: '#FFA500',
-            shadow: 'rgba(255, 165, 0, 0.8)'
-        };
-    } else {
-        return {
-            background: 'radial-gradient(circle, #FFD700 0%, #FFEB99 70%, #FFF8DC 100%)',
-            border: '#FFD700',
-            shadow: 'rgba(255, 215, 0, 0.8)'
-        };
+    const colorSets = [
+        { min: 70, colors: ['#FF0080', '#FF4500', '#FF6B00'], border: '#FF0080', rgba: '255, 0, 128' },
+        { min: 50, colors: ['#FF4500', '#FF6B00', '#FF8C00'], border: '#FF4500', rgba: '255, 69, 0' },
+        { min: 30, colors: ['#FF8C00', '#FFA500', '#FFB84D'], border: '#FF8C00', rgba: '255, 140, 0' },
+        { min: 10, colors: ['#FFA500', '#FFD700', '#FFEB99'], border: '#FFA500', rgba: '255, 165, 0' },
+        { min: 0, colors: ['#FFD700', '#FFEB99', '#FFF8DC'], border: '#FFD700', rgba: '255, 215, 0' }
+    ];
+    
+    for (const set of colorSets) {
+        if (elevation >= set.min) {
+            return {
+                background: `radial-gradient(circle, ${set.colors[0]} 0%, ${set.colors[1]} 70%, ${set.colors[2]} 100%)`,
+                border: set.border,
+                shadow: `rgba(${set.rgba}, 0.8)`
+            };
+        }
     }
 }
 
@@ -861,67 +828,26 @@ function calculateBearing(point1, point2) {
 }
 
 function calculateCarSideExposures(sunPosition, carBearing) {
-    const sunAzimuth = sunPosition.azimuth;
-    const sunElevation = Math.max(0, sunPosition.elevation);
+    const relativeSunAngle = (sunPosition.azimuth - carBearing + 360) % 360;
     
-    // Calculate relative sun position to car (0° = front of car, 90° = right, 180° = back, 270° = left)
-    let relativeSunAngle = (sunAzimuth - carBearing + 360) % 360;
+    const calculateSideExposure = (targetAngle, tolerance = 90) => {
+        let angle = Math.abs(relativeSunAngle - targetAngle);
+        if (targetAngle === 270 && angle >= 270) angle = 360 - angle;
+        return angle <= tolerance ? Math.cos(angle * Math.PI / 180) : 0;
+    };
     
-    // Normalize elevation to exposure factor (higher sun = more intense exposure)
-    const elevationFactor = Math.sin(sunElevation * Math.PI / 180);
-    
-    // Calculate raw exposure values for each side
     const rawExposures = {
-        front: 0,
-        back: 0,
-        left: 0,
-        right: 0
+        front: calculateSideExposure(Math.min(relativeSunAngle, 360 - relativeSunAngle) <= 90 ? 0 : 360),
+        back: calculateSideExposure(180),
+        left: calculateSideExposure(270),
+        right: calculateSideExposure(90)
     };
     
-    // Front side: maximum exposure when sun is ahead (0°±90°)
-    const frontAngle = Math.min(relativeSunAngle, 360 - relativeSunAngle);
-    if (frontAngle <= 90) {
-        rawExposures.front = Math.cos(frontAngle * Math.PI / 180);
-    }
+    const totalExposure = Object.values(rawExposures).reduce((sum, val) => sum + val, 0);
     
-    // Back side: maximum exposure when sun is behind (180°±90°)
-    const backAngle = Math.abs(relativeSunAngle - 180);
-    if (backAngle <= 90) {
-        rawExposures.back = Math.cos(backAngle * Math.PI / 180);
-    }
-    
-    // Left side: maximum when sun is at 270°±90° (left side of car)
-    const leftAngle = Math.abs(relativeSunAngle - 270);
-    if (leftAngle <= 90 || leftAngle >= 270) {
-        const actualLeftAngle = leftAngle > 180 ? 360 - leftAngle : leftAngle;
-        rawExposures.left = Math.cos(actualLeftAngle * Math.PI / 180);
-    }
-    
-    // Right side: maximum when sun is at 90°±90° (right side of car)
-    const rightAngle = Math.abs(relativeSunAngle - 90);
-    if (rightAngle <= 90) {
-        rawExposures.right = Math.cos(rightAngle * Math.PI / 180);
-    }
-    
-    // Calculate total exposure and normalize to percentages that add up to 100%
-    const totalExposure = rawExposures.front + rawExposures.back + rawExposures.left + rawExposures.right;
-    
-    const exposures = {
-        front: 0,
-        back: 0,
-        left: 0,
-        right: 0
-    };
-    
-    if (totalExposure > 0) {
-        // Normalize each side as a percentage of total exposure (always adds up to 100%)
-        exposures.front = rawExposures.front / totalExposure;
-        exposures.back = rawExposures.back / totalExposure;
-        exposures.left = rawExposures.left / totalExposure;
-        exposures.right = rawExposures.right / totalExposure;
-    }
-    
-    return exposures;
+    return totalExposure > 0 
+        ? Object.fromEntries(Object.entries(rawExposures).map(([key, val]) => [key, val / totalExposure]))
+        : { front: 0, back: 0, left: 0, right: 0 };
 }
 
 function getExposureColor(exposureLevel) {
