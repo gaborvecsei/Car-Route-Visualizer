@@ -40,7 +40,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://unpkg.com">
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'roboto': ['Roboto', 'Google Sans', 'system-ui', '-apple-system', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <!-- Structured Data -->
@@ -67,79 +78,79 @@
     }
     </script>
 </head>
-<body>
-    <a href="#main-content" class="skip-link">Skip to main content</a>
-    <div class="container">
-        <header class="header" role="banner">
-            <h1>☀️ Sun Exposure Route Planner</h1>
-            <p>Discover which side of your car gets hit by sun during your journey!</p>
+<body class="font-roboto bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen text-gray-900 leading-relaxed overflow-x-hidden text-base">
+    <a href="#main-content" class="absolute -top-10 left-1 bg-blue-600 text-white px-2 py-2 no-underline rounded z-[1000] font-semibold focus:top-1">Skip to main content</a>
+    <div class="max-w-full m-0 p-0 h-screen flex flex-col">
+        <header class="px-3 py-3 md:px-6 md:py-6 text-center bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg" role="banner">
+            <h1 class="text-white text-2xl md:text-3xl font-medium tracking-normal mb-1 md:mb-2 font-roboto leading-tight">☀️ Sun Exposure Route Planner</h1>
+            <p class="text-white/90 text-sm md:text-sm m-0 font-normal opacity-90 leading-relaxed">Discover which side of your car gets hit by sun during your journey!</p>
         </header>
         
-        <main id="main-content" class="main-content" role="main">
+        <main id="main-content" class="flex-1 flex flex-col md:grid md:grid-cols-[300px_1fr] lg:grid-cols-[320px_1fr_300px] xl:grid-cols-[360px_1fr_320px] gap-4 md:gap-4 h-auto md:h-[calc(100vh-104px)] md:overflow-hidden p-4 md:p-4 bg-transparent" role="main">
             <!-- Sidebar with controls -->
-            <section class="sidebar" aria-label="Route and sun tracking controls">
-                <div class="route-group">
-                    <h3>Route</h3>
-                    <div class="route-inputs">
-                        <label for="route-from" class="visually-hidden">Starting location</label>
-                        <input type="text" id="route-from" value="Budapest" class="route-input" placeholder="From" aria-describedby="route-from-help">
+            <section class="bg-white rounded-xl p-6 md:p-6 overflow-y-auto shadow-lg border border-gray-200 w-full md:w-auto mb-4 md:mb-0 flex-shrink-0" aria-label="Route and sun tracking controls">
+                <div class="mb-8 p-0 bg-transparent rounded-none border-none shadow-none">
+                    <h3 class="text-blue-600 text-xl md:text-lg font-semibold mb-6 md:mb-4 flex items-center gap-2 font-roboto before:content-['🗺️'] before:text-xl">Route</h3>
+                    <div class="grid grid-cols-1 gap-6 md:gap-4">
+                        <label for="route-from" class="absolute w-px h-px p-0 -m-px overflow-hidden clip-[rect(0,0,0,0)] whitespace-nowrap border-0">Starting location</label>
+                        <input type="text" id="route-from" value="Budapest" class="px-4 py-3 md:py-3 border-2 border-gray-200 rounded-lg md:rounded-lg text-base md:text-base transition-all bg-white text-gray-900 font-normal font-roboto placeholder:text-amber-800 placeholder:font-normal focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100 min-h-[56px] md:min-h-[48px]" placeholder="From" aria-describedby="route-from-help">
                         <div id="route-from-help" class="sr-only">Enter your starting location</div>
-                        <label for="route-to" class="visually-hidden">Destination</label>
-                        <input type="text" id="route-to" value="Klenovica" class="route-input" placeholder="To" aria-describedby="route-to-help">
+                        <label for="route-to" class="absolute w-px h-px p-0 -m-px overflow-hidden clip-[rect(0,0,0,0)] whitespace-nowrap border-0">Destination</label>
+                        <input type="text" id="route-to" value="Klenovica" class="px-4 py-3 md:py-3 border-2 border-gray-200 rounded-lg md:rounded-lg text-base md:text-base transition-all bg-white text-gray-900 font-normal font-roboto placeholder:text-amber-800 placeholder:font-normal focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100 min-h-[56px] md:min-h-[48px]" placeholder="To" aria-describedby="route-to-help">
                         <div id="route-to-help" class="sr-only">Enter your destination</div>
                     </div>
                 </div>
                 
-                <div class="sun-tracking-group">
-                    <h3>Settings</h3>
-                    <div class="sun-inputs">
-                        <div class="input-group">
-                            <label for="trip-date">Date</label>
-                            <input type="date" id="trip-date" class="date-input">
+                <div class="mb-8 p-0 bg-transparent rounded-none border-none shadow-none">
+                    <h3 class="text-blue-600 text-xl md:text-lg font-semibold mb-6 md:mb-4 flex items-center gap-2 font-roboto before:content-['☀️'] before:text-xl">Sun Tracking Settings</h3>
+                    <div class="grid grid-cols-1 gap-6 md:gap-4 mb-6 md:mb-4">
+                        <div class="flex flex-col gap-3 md:gap-2">
+                            <label for="trip-date" class="font-semibold text-gray-700 text-base md:text-sm normal-case tracking-normal font-roboto mb-2 md:mb-1">Trip Start Date</label>
+                            <input type="date" id="trip-date" class="px-4 py-3 md:py-3 border-2 border-gray-200 rounded-lg md:rounded-lg text-base md:text-base transition-all bg-white text-gray-900 font-normal font-roboto focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100 min-h-[56px] md:min-h-[48px]">
                         </div>
-                        <div class="input-group">
-                            <label for="trip-time">Start Time</label>
-                            <input type="time" id="trip-time" class="time-input">
+                        <div class="flex flex-col gap-3 md:gap-2">
+                            <label for="trip-time" class="font-semibold text-gray-700 text-base md:text-sm normal-case tracking-normal font-roboto mb-2 md:mb-1">Start Time</label>
+                            <input type="time" id="trip-time" class="px-4 py-3 md:py-3 border-2 border-gray-200 rounded-lg md:rounded-lg text-base md:text-base transition-all bg-white text-gray-900 font-normal font-roboto focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100 min-h-[56px] md:min-h-[48px]">
                         </div>
                     </div>
-                    <div class="car-visualization-control">
-                        <label for="check-frequency">Check every (km):</label>
-                        <input type="number" id="check-frequency" value="5" min="1" max="50" step="1" class="frequency-input">
+                    <div class="flex flex-col md:flex-row items-center gap-4 md:gap-3 p-6 md:p-4 bg-gray-50 rounded-xl justify-center border border-gray-200">
+                        <label for="check-frequency" class="font-semibold text-gray-700 text-base md:text-sm font-roboto text-center md:text-left">Sun Analysis Interval (km):</label>
+                        <input type="number" id="check-frequency" value="5" min="1" max="50" step="1" class="w-24 md:w-20 text-center font-medium px-4 py-3 md:py-3 border-2 border-gray-200 rounded-lg md:rounded-lg text-lg md:text-base transition-all bg-white text-gray-900 font-normal font-roboto focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100 min-h-[56px] md:min-h-[48px]">
                     </div>
                 </div>
                 
-                <button id="visualize-btn" class="visualize-button" type="button" aria-describedby="analyze-help">
-                    <span class="button-icon">☀️</span>
-                    Get Sun Analysis
+                <button id="visualize-btn" class="w-full px-6 py-5 md:py-4 bg-gradient-to-br from-blue-600 to-blue-700 text-white border-none rounded-xl md:rounded-xl text-xl md:text-base font-semibold cursor-pointer transition-all mt-8 md:mt-6 shadow-lg normal-case tracking-normal font-roboto flex items-center justify-center gap-3 md:gap-2 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl hover:-translate-y-0.5 active:from-blue-800 active:to-blue-900 active:shadow-md active:translate-y-0 min-h-[64px] md:min-h-[48px] focus:outline-none focus:ring-4 focus:ring-blue-300" type="button" aria-describedby="analyze-help">
+                    <span class="inline-block text-2xl md:text-base">☀️</span>
+                    Analyze Sun Exposure
                 </button>
                 <div id="analyze-help" class="sr-only">Calculate sun exposure for your planned route</div>
             </section>
             
             <!-- Map section -->
-            <section class="map-section" aria-label="Interactive map">
-                <div id="map" class="map-container" role="img" aria-label="Interactive route map"></div>
-                <div id="status" class="status-message" role="status" aria-live="polite"></div>
+            <section class="bg-white rounded-xl relative overflow-hidden shadow-lg border border-gray-200 w-full h-[500px] md:h-auto mb-4 md:mb-0 flex-shrink-0" aria-label="Interactive map">
+                <div id="map" class="h-full w-full" role="img" aria-label="Interactive route map"></div>
+                <div id="status" class="absolute bottom-2 md:bottom-4 left-2 md:left-4 right-2 md:right-4 p-3 md:p-4 text-center rounded-xl font-medium text-sm shadow-lg z-[1000] font-roboto opacity-0 transition-opacity duration-300 [&:not(:empty)]:opacity-100" role="status" aria-live="polite"></div>
             </section>
             
             <!-- Results panel -->
-            <aside class="results-panel" aria-label="Sun exposure analysis results">
+            <aside class="bg-white rounded-xl p-6 md:p-6 overflow-y-auto shadow-lg border border-gray-200 w-full md:w-auto md:col-span-2 lg:col-span-1 md:border-t lg:border-t-0 lg:border-l min-h-[400px] flex-shrink-0" aria-label="Sun exposure analysis results">
                 <!-- Placeholder when no results -->
-                <div id="results-placeholder" class="results-placeholder">
-                    <div class="placeholder-content">
-                        <div class="placeholder-icon">📊</div>
-                        <h3>Sun Exposure Results</h3>
-                        <p>Click "Get Sun Analysis" to see which sides of your car will catch the most sun!</p>
-                        <div class="placeholder-features">
-                            <div class="feature-item">
-                                <span class="feature-icon">🌅</span>
+                <div id="results-placeholder" class="flex items-center justify-center h-full p-4 md:p-8">
+                    <div class="text-center max-w-[280px]">
+                        <div class="text-4xl md:text-5xl mb-4 md:mb-6">📊</div>
+                        <h3 class="text-blue-600 text-lg md:text-xl font-semibold mb-3 md:mb-4 font-roboto">Sun Exposure Results</h3>
+                        <p class="text-amber-800 text-sm leading-relaxed mb-4 md:mb-6 font-roboto">Click "Get Sun Analysis" to see which sides of your car will catch the most sun!</p>
+                        <div class="flex flex-col gap-3">
+                            <div class="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl text-xs md:text-sm text-gray-600 border border-gray-200 font-roboto">
+                                <span class="text-lg">🌅</span>
                                 <span>Live sun tracking</span>
                             </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">🎯</span>
+                            <div class="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl text-xs md:text-sm text-gray-600 border border-gray-200 font-roboto">
+                                <span class="text-lg">🎯</span>
                                 <span>Exact percentages</span>
                             </div>
-                            <div class="feature-item">
-                                <span class="feature-icon">🚗</span>
+                            <div class="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl text-xs md:text-sm text-gray-600 border border-gray-200 font-roboto">
+                                <span class="text-lg">🚗</span>
                                 <span>Per-side breakdown</span>
                             </div>
                         </div>
@@ -147,37 +158,37 @@
                 </div>
                 
                 <!-- Results container -->
-                <div id="car-summary" class="car-summary-container" style="display: none;">
-                    <h3>Sun Exposure Summary</h3>
-                    <div class="car-box-visualization">
-                        <div class="car-box">
+                <div id="car-summary" class="block" style="display: none;">
+                    <h3 class="text-center text-blue-600 mb-8 md:mb-6 text-2xl md:text-xl font-semibold flex items-center justify-center gap-3 md:gap-2 font-roboto before:content-['🚗'] before:text-3xl md:before:text-2xl">Sun Exposure Summary</h3>
+                    <div class="flex justify-center items-center mt-4 md:mt-0">
+                        <div class="grid grid-cols-3 grid-rows-3 gap-4 md:gap-3 p-6 md:p-4 scale-100 md:scale-90 lg:scale-100 origin-center" style="grid-template-areas: '. front .' 'left center right' '. back .';">
                             <!-- Front side -->
-                            <div class="car-side car-front" id="summary-front">
-                                <span class="side-label">FRONT</span>
-                                <span class="side-percentage" id="front-percentage">0%</span>
+                            <div class="flex flex-col items-center justify-center p-4 md:p-5 border-2 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-white transition-all shadow-lg relative overflow-hidden w-[120px] md:w-[140px] h-[60px] md:h-[70px] hover:before:translate-x-full before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-orange-100/50 before:to-transparent before:-translate-x-full before:transition-transform before:duration-400" id="summary-front" style="grid-area: front;">
+                                <span class="text-xs md:text-xs font-medium text-amber-800 mb-1 md:mb-2 uppercase tracking-wider font-roboto">FRONT</span>
+                                <span class="text-lg md:text-xl font-semibold text-blue-600 font-roboto" id="front-percentage">0%</span>
                             </div>
                             
                             <!-- Left side -->
-                            <div class="car-side car-left" id="summary-left">
-                                <span class="side-label">LEFT</span>
-                                <span class="side-percentage" id="left-percentage">0%</span>
+                            <div class="flex flex-col items-center justify-center p-4 md:p-5 border-2 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-white transition-all shadow-lg relative overflow-hidden w-[60px] md:w-[70px] h-[120px] md:h-[140px] hover:before:translate-x-full before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-orange-100/50 before:to-transparent before:-translate-x-full before:transition-transform before:duration-400" id="summary-left" style="grid-area: left;">
+                                <span class="text-xs md:text-xs font-medium text-amber-800 mb-1 md:mb-2 uppercase tracking-wider font-roboto">LEFT</span>
+                                <span class="text-lg md:text-xl font-semibold text-blue-600 font-roboto" id="left-percentage">0%</span>
                             </div>
                             
                             <!-- Center area -->
-                            <div class="car-center">
+                            <div class="w-[120px] md:w-[140px] h-[120px] md:h-[140px] flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-200 border-2 border-blue-600 rounded-xl text-4xl md:text-5xl shadow-lg" style="grid-area: center;">
                                 <span>🚗</span>
                             </div>
                             
                             <!-- Right side -->
-                            <div class="car-side car-right" id="summary-right">
-                                <span class="side-label">RIGHT</span>
-                                <span class="side-percentage" id="right-percentage">0%</span>
+                            <div class="flex flex-col items-center justify-center p-4 md:p-5 border-2 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-white transition-all shadow-lg relative overflow-hidden w-[60px] md:w-[70px] h-[120px] md:h-[140px] hover:before:translate-x-full before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-orange-100/50 before:to-transparent before:-translate-x-full before:transition-transform before:duration-400" id="summary-right" style="grid-area: right;">
+                                <span class="text-xs md:text-xs font-medium text-amber-800 mb-1 md:mb-2 uppercase tracking-wider font-roboto">RIGHT</span>
+                                <span class="text-lg md:text-xl font-semibold text-blue-600 font-roboto" id="right-percentage">0%</span>
                             </div>
                             
                             <!-- Back side -->
-                            <div class="car-side car-back" id="summary-back">
-                                <span class="side-label">BACK</span>
-                                <span class="side-percentage" id="back-percentage">0%</span>
+                            <div class="flex flex-col items-center justify-center p-4 md:p-5 border-2 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-white transition-all shadow-lg relative overflow-hidden w-[120px] md:w-[140px] h-[60px] md:h-[70px] hover:before:translate-x-full before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-orange-100/50 before:to-transparent before:-translate-x-full before:transition-transform before:duration-400" id="summary-back" style="grid-area: back;">
+                                <span class="text-xs md:text-xs font-medium text-amber-800 mb-1 md:mb-2 uppercase tracking-wider font-roboto">BACK</span>
+                                <span class="text-lg md:text-xl font-semibold text-blue-600 font-roboto" id="back-percentage">0%</span>
                             </div>
                         </div>
                     </div>
@@ -185,11 +196,11 @@
             </aside>
         </main>
         
-        <footer class="footer">
-            <div class="footer-content">
+        <footer class="bg-gray-100 border-t border-gray-200 px-3 md:px-6 py-3 md:py-4 mt-auto">
+            <div class="text-center text-xs md:text-sm text-gray-600">
                 <p>&copy; 2025 Route Sun Exposure Visualizer | 
-                    <a href="https://github.com/yourusername/route-sun-exposure">GitHub</a> | 
-                    <span class="disclaimer">For planning purposes only</span>
+                    <a href="https://github.com/yourusername/route-sun-exposure" class="text-blue-600 no-underline hover:underline">GitHub</a> | 
+                    <span class="italic text-gray-500">For planning purposes only</span>
                 </p>
             </div>
         </footer>
@@ -199,7 +210,8 @@
     <script src="config.js"></script>
     <script src="script.js"></script>
     
-    <!-- Service Worker Registration -->
+    <!-- Service Worker Registration - DISABLED FOR DEVELOPMENT -->
+    <!--
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
@@ -227,6 +239,7 @@
             });
         }
     </script>
+    -->
     
     <!-- Google Analytics (replace GA_MEASUREMENT_ID with your actual ID) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
