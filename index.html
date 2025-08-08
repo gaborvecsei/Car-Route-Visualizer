@@ -80,13 +80,13 @@
 </head>
 <body class="font-roboto bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen text-gray-900 leading-relaxed overflow-x-hidden text-base">
     <a href="#main-content" class="absolute -top-10 left-1 bg-blue-600 text-white px-2 py-2 no-underline rounded z-[1000] font-semibold focus:top-1">Skip to main content</a>
-    <div class="max-w-full m-0 p-0 h-screen flex flex-col">
+    <div class="max-w-full m-0 p-0 min-h-screen flex flex-col">
         <header class="px-3 py-3 md:px-6 md:py-6 text-center bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg" role="banner">
             <h1 class="text-white text-2xl md:text-3xl font-medium tracking-normal mb-1 md:mb-2 font-roboto leading-tight">☀️ Sun Exposure Route Planner</h1>
             <p class="text-white/90 text-sm md:text-sm m-0 font-normal opacity-90 leading-relaxed">Discover which side of your car gets hit by sun during your journey!</p>
         </header>
         
-        <main id="main-content" class="flex-1 flex flex-col md:grid md:grid-cols-[300px_1fr] lg:grid-cols-[320px_1fr_300px] xl:grid-cols-[360px_1fr_320px] gap-4 md:gap-4 h-auto md:h-[calc(100vh-104px)] md:overflow-hidden p-4 md:p-4 bg-transparent" role="main">
+        <main id="main-content" class="flex-1 flex flex-col md:grid md:grid-cols-[300px_1fr] lg:grid-cols-[320px_1fr_300px] xl:grid-cols-[360px_1fr_320px] gap-4 md:gap-4 h-auto md:h-[600px] p-4 md:p-4 bg-transparent" role="main">
             <!-- Sidebar with controls -->
             <section class="bg-white rounded-xl p-6 md:p-6 overflow-y-auto shadow-lg border border-gray-200 w-full md:w-auto mb-4 md:mb-0 flex-shrink-0" aria-label="Route and sun tracking controls">
                 <div class="mb-8 p-0 bg-transparent rounded-none border-none shadow-none">
@@ -195,6 +195,61 @@
                 </div>
             </aside>
         </main>
+        
+        <!-- SEO Content Section -->
+        <section class="bg-gradient-to-br from-white to-gray-50 py-12 px-6 border-t border-gray-200">
+        <div class="max-w-4xl mx-auto">
+            <div class="grid md:grid-cols-2 gap-8 lg:gap-12">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-blue-600 mb-4 flex items-center gap-2">
+                        <span class="text-3xl">😎</span>
+                        Why Check Sun Exposure?
+                    </h2>
+                    <div class="space-y-4 text-gray-700 leading-relaxed">
+                        <p class="text-base md:text-lg">This fun project helps you make smart seating decisions for road trips:</p>
+                        <ul class="space-y-2 text-sm md:text-base pl-4">
+                            <li class="flex items-start gap-2"><span class="text-orange-500 font-bold">•</span> <strong>Choose Your Side:</strong> If you can pick where to sit, why not avoid the sunny side?</li>
+                            <li class="flex items-start gap-2"><span class="text-orange-500 font-bold">•</span> <strong>Let Others Cook:</strong> Perfect for deciding who gets the hot seat on long drives</li>
+                            <li class="flex items-start gap-2"><span class="text-orange-500 font-bold">•</span> <strong>Plan Ahead:</strong> Know what to expect before you hit the road</li>
+                            <li class="flex items-start gap-2"><span class="text-orange-500 font-bold">•</span> <strong>Pure Curiosity:</strong> Ever wondered which direction the sun hits during your journey?</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-blue-600 mb-4 flex items-center gap-2">
+                        <span class="text-3xl">🔬</span>
+                        How Sun Exposure is Calculated
+                    </h2>
+                    <div class="space-y-4 text-gray-700 leading-relaxed">
+                        <p class="text-base md:text-lg">The calculation uses simplified astronomical formulas with some assumptions to keep it manageable:</p>
+                        <div class="space-y-3 text-sm md:text-base">
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                                <h3 class="font-semibold text-blue-800 mb-2">📍 Step 1: Route Analysis</h3>
+                                <p>Get route coordinates from mapping services and calculate vehicle heading between waypoints at your chosen intervals (1-50km).</p>
+                            </div>
+                            <div class="bg-orange-50 p-4 rounded-lg border border-orange-100">
+                                <h3 class="font-semibold text-orange-800 mb-2">☀️ Step 2: Solar Position</h3>
+                                <p>Calculate sun azimuth and elevation using coordinate pairs, trip date/time, and basic solar declination formulas. Assumes constant travel speed and ignores time zones.</p>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                                <h3 class="font-semibold text-green-800 mb-2">🎯 Step 3: Exposure Mapping</h3>
+                                <p>Compare sun direction with car orientation to determine which side gets hit. Only considers direct sunlight - no terrain, weather, or shadow calculations.</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200 text-sm">
+                            <p class="text-amber-800"><strong>Note:</strong> This is a fun approximation! Real sun exposure depends on terrain, weather, exact timing, and many other factors we don't account for.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 p-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-white text-center">
+                <h3 class="text-lg md:text-xl font-semibold mb-2">🚗 Start Planning Your Comfortable Journey</h3>
+                <p class="text-sm md:text-base opacity-90">Enter your route above and discover which side of your car gets the most sun exposure throughout your trip!</p>
+            </div>
+        </div>
+        </section>
         
         <footer class="bg-gray-100 border-t border-gray-200 px-3 md:px-6 py-3 md:py-4 mt-auto">
             <div class="text-center text-xs md:text-sm text-gray-600">
