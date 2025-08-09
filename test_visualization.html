@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Sun Exposure Test Visualization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-case {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .visualization-container {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .compass-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+        }
+        .compass-circle {
+            width: 100%;
+            height: 100%;
+            border: 2px solid #ddd;
+            border-radius: 50%;
+            position: relative;
+            background: linear-gradient(45deg, #f8f9fa 25%, #fff 25%, #fff 50%, #f8f9fa 50%, #f8f9fa 75%, #fff 75%, #fff);
+            background-size: 20px 20px;
+        }
+        .compass-directions {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+        .direction-label {
+            position: absolute;
+            font-weight: bold;
+            font-size: 16px;
+            color: #666;
+        }
+        .car {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 60px;
+            z-index: 10;
+        }
+        .sun {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #FFD700 0%, #FFA500 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+        }
+        .sun-ray {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            height: 2px;
+            background: linear-gradient(to right, #FFD700, rgba(255, 215, 0, 0.3));
+            transform-origin: left center;
+            z-index: 3;
+        }
+        .results-panel {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            min-width: 250px;
+        }
+        .exposure-bar {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        .exposure-label {
+            width: 60px;
+            font-weight: bold;
+        }
+        .exposure-value {
+            margin-left: 10px;
+            font-weight: bold;
+        }
+        .bar {
+            height: 20px;
+            border-radius: 3px;
+            margin-left: 10px;
+            min-width: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+        }
+        .metadata {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚗☀️ Car Sun Exposure Test Visualization</h1>
+    <p>Each test case shows the car (blue), sun position (yellow), and resulting exposure percentages.</p>
+    
+    <div id="test-container"></div>
+
+    <script>
+        // Copy calculation functions
+        function calculateCarSideExposures(sunPosition, carBearing) {
+            const relativeSunAngle = (sunPosition.azimuth - carBearing + 360) % 360;
+            
+            const calculateSideExposure = (targetAngle, tolerance = 90) => {
+                let angle = Math.abs(relativeSunAngle - targetAngle);
+                angle = Math.min(angle, 360 - angle);
+                return angle <= tolerance ? Math.cos(angle * Math.PI / 180) : 0;
+            };
+            
+            const rawExposures = {
+                front: calculateSideExposure(0),
+                back: calculateSideExposure(180),
+                left: calculateSideExposure(270),
+                right: calculateSideExposure(90)
+            };
+            
+            const totalExposure = Object.values(rawExposures).reduce((sum, val) => sum + val, 0);
+            
+            return totalExposure > 0 
+                ? Object.fromEntries(Object.entries(rawExposures).map(([key, val]) => [key, val / totalExposure]))
+                : { front: 0, back: 0, left: 0, right: 0 };
+        }
+
+        function getCompassDirection(azimuth) {
+            const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+            const index = Math.round(azimuth / 22.5) % 16;
+            return directions[index];
+        }
+
+        // Test cases
+        const testCases = [
+            { name: "Sun directly in front", carBearing: 0, sunAzimuth: 0 },
+            { name: "Sun directly behind", carBearing: 0, sunAzimuth: 180 },
+            { name: "Sun directly to right", carBearing: 0, sunAzimuth: 90 },
+            { name: "Sun directly to left", carBearing: 0, sunAzimuth: 270 },
+            { name: "Sun front-right diagonal (45°)", carBearing: 0, sunAzimuth: 45 },
+            { name: "Sun front-left diagonal (315°)", carBearing: 0, sunAzimuth: 315 },
+            { name: "Reported issue case (348.5°)", carBearing: 0, sunAzimuth: 348.5 },
+            { name: "Car facing East, sun from North", carBearing: 90, sunAzimuth: 0 },
+            { name: "Sun at 1° (almost front)", carBearing: 0, sunAzimuth: 1 },
+            { name: "Sun at 359° (almost front)", carBearing: 0, sunAzimuth: 359 },
+        ];
+
+        function createVisualization(testCase) {
+            const sunPosition = { azimuth: testCase.sunAzimuth, elevation: 45 };
+            const result = calculateCarSideExposures(sunPosition, testCase.carBearing);
+            const relativeSunAngle = (testCase.sunAzimuth - testCase.carBearing + 360) % 360;
+
+            const container = document.createElement('div');
+            container.className = 'test-case';
+            
+            // Calculate sun position on compass (150px radius from center)
+            const sunRadius = 120;
+            const sunAngleRad = (testCase.sunAzimuth - 90) * Math.PI / 180; // Adjust for SVG coordinates
+            const sunX = 150 + Math.cos(sunAngleRad) * sunRadius;
+            const sunY = 150 + Math.sin(sunAngleRad) * sunRadius;
+
+            // Calculate car rotation
+            const carRotation = testCase.carBearing;
+
+            container.innerHTML = `
+                <div class="test-header">${testCase.name}</div>
+                <div class="visualization-container">
+                    <div class="compass-container">
+                        <div class="compass-circle">
+                            <!-- Compass directions -->
+                            <div class="compass-directions">
+                                <div class="direction-label" style="top: 5px; left: 50%; transform: translateX(-50%);">N</div>
+                                <div class="direction-label" style="top: 50%; right: 5px; transform: translateY(-50%);">E</div>
+                                <div class="direction-label" style="bottom: 5px; left: 50%; transform: translateX(-50%);">S</div>
+                                <div class="direction-label" style="top: 50%; left: 5px; transform: translateY(-50%);">W</div>
+                            </div>
+                            
+                            <!-- Sun ray from center to sun -->
+                            <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none;">
+                                <line x1="150" y1="150" x2="${sunX}" y2="${sunY}" 
+                                      stroke="#FFD700" stroke-width="3" opacity="0.8" 
+                                      stroke-dasharray="5,5"/>
+                            </svg>
+                            
+                            <!-- Car at center -->
+                            <div class="car" style="transform: translate(-50%, -50%) rotate(${carRotation}deg);">
+                                <svg width="40" height="60" viewBox="0 0 40 60">
+                                    <!-- Car body -->
+                                    <rect x="8" y="5" width="24" height="50" rx="6" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1"/>
+                                    
+                                    <!-- Windshield (front) -->
+                                    <rect x="10" y="7" width="20" height="8" rx="2" fill="#60a5fa"/>
+                                    
+                                    <!-- Rear window -->
+                                    <rect x="10" y="45" width="20" height="8" rx="2" fill="#60a5fa"/>
+                                    
+                                    <!-- Headlights -->
+                                    <circle cx="15" cy="3" r="2" fill="#fbbf24"/>
+                                    <circle cx="25" cy="3" r="2" fill="#fbbf24"/>
+                                    
+                                    <!-- Wheels -->
+                                    <rect x="6" y="12" width="4" height="8" rx="2" fill="#374151"/>
+                                    <rect x="30" y="12" width="4" height="8" rx="2" fill="#374151"/>
+                                    <rect x="6" y="40" width="4" height="8" rx="2" fill="#374151"/>
+                                    <rect x="30" y="40" width="4" height="8" rx="2" fill="#374151"/>
+                                    
+                                    <!-- Side labels for reference -->
+                                    <text x="20" y="-2" text-anchor="middle" font-size="8" fill="#000">F</text>
+                                    <text x="37" y="32" text-anchor="middle" font-size="8" fill="#000">R</text>
+                                    <text x="20" y="58" text-anchor="middle" font-size="8" fill="#000">B</text>
+                                    <text x="3" y="32" text-anchor="middle" font-size="8" fill="#000">L</text>
+                                </svg>
+                            </div>
+                            
+                            <!-- Sun position -->
+                            <div class="sun" style="left: ${sunX}px; top: ${sunY}px;">☀</div>
+                        </div>
+                    </div>
+                    
+                    <div class="results-panel">
+                        <h3>Sun Exposure Results</h3>
+                        
+                        <div class="exposure-bar">
+                            <span class="exposure-label">Front:</span>
+                            <div class="bar" style="width: ${Math.max(30, result.front * 150)}px; background: linear-gradient(to right, #ff4444, #ff8888);">
+                                ${(result.front * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                        
+                        <div class="exposure-bar">
+                            <span class="exposure-label">Back:</span>
+                            <div class="bar" style="width: ${Math.max(30, result.back * 150)}px; background: linear-gradient(to right, #44ff44, #88ff88);">
+                                ${(result.back * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                        
+                        <div class="exposure-bar">
+                            <span class="exposure-label">Left:</span>
+                            <div class="bar" style="width: ${Math.max(30, result.left * 150)}px; background: linear-gradient(to right, #4444ff, #8888ff);">
+                                ${(result.left * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                        
+                        <div class="exposure-bar">
+                            <span class="exposure-label">Right:</span>
+                            <div class="bar" style="width: ${Math.max(30, result.right * 150)}px; background: linear-gradient(to right, #ff44ff, #ff88ff);">
+                                ${(result.right * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                        
+                        <div class="metadata">
+                            <strong>Car Direction:</strong> ${getCompassDirection(testCase.carBearing)} (${testCase.carBearing}°)<br>
+                            <strong>Sun Direction:</strong> ${getCompassDirection(testCase.sunAzimuth)} (${testCase.sunAzimuth}°)<br>
+                            <strong>Relative Sun Angle:</strong> ${relativeSunAngle.toFixed(1)}°<br>
+                            <strong>Total:</strong> ${((result.front + result.back + result.left + result.right) * 100).toFixed(1)}%
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return container;
+        }
+
+        // Generate all visualizations
+        window.onload = function() {
+            const container = document.getElementById('test-container');
+            testCases.forEach(testCase => {
+                container.appendChild(createVisualization(testCase));
+            });
+        };
+    </script>
+</body>
+</html>
