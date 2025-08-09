@@ -158,36 +158,13 @@
     <h2>📋 Predefined Test Cases</h2>
     <div id="test-container"></div>
 
+    <!-- Import the main script to use its functions -->
+    <script src="script.js"></script>
+    
     <script>
-        // Copy calculation functions
-        function calculateCarSideExposures(sunPosition, carBearing) {
-            const relativeSunAngle = (sunPosition.azimuth - carBearing + 360) % 360;
-            
-            const calculateSideExposure = (targetAngle, tolerance = 90) => {
-                let angle = Math.abs(relativeSunAngle - targetAngle);
-                angle = Math.min(angle, 360 - angle);
-                return angle <= tolerance ? Math.cos(angle * Math.PI / 180) : 0;
-            };
-            
-            const rawExposures = {
-                front: calculateSideExposure(0),
-                back: calculateSideExposure(180),
-                left: calculateSideExposure(270),
-                right: calculateSideExposure(90)
-            };
-            
-            const totalExposure = Object.values(rawExposures).reduce((sum, val) => sum + val, 0);
-            
-            return totalExposure > 0 
-                ? Object.fromEntries(Object.entries(rawExposures).map(([key, val]) => [key, val / totalExposure]))
-                : { front: 0, back: 0, left: 0, right: 0 };
-        }
-
-        function getCompassDirection(azimuth) {
-            const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-            const index = Math.round(azimuth / 22.5) % 16;
-            return directions[index];
-        }
+        // Test functions are now available from script.js:
+        // - calculateCarSideExposures()
+        // - getCompassDirection()
 
         // Test cases
         const testCases = [
