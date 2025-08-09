@@ -70,19 +70,6 @@ function initMap() {
         }
     });
     
-    // Add zoom event listener to refresh sun markers with new scale
-    map.on('zoomend', function() {
-        if (sunMarkers.length > 0) {
-            // Store current sun positions data
-            const currentSunData = [...sunMarkers];
-            if (currentSunData.length > 0) {
-                // Small delay to let zoom animation finish
-                setTimeout(() => {
-                    refreshSunVisualization();
-                }, 100);
-            }
-        }
-    });
     
     const today = new Date();
     document.getElementById('trip-date').value = today.toISOString().split('T')[0];
@@ -622,56 +609,54 @@ function calculateSunPositionsAlongRoute(routePath, startDate) {
     return sunPositions;
 }
 
-function calculateSunPosition(latitude, longitude, date) {
-    // Use SunCalc library for accurate sun position calculation
-    const sunPosition = SunCalc.getPosition(date, latitude, longitude);
-    
-    // Convert radians to degrees and adjust coordinate system
-    const elevation = sunPosition.altitude * 180 / Math.PI;
-    // SunCalc returns azimuth with 0° = South, convert to 0° = North
-    let azimuth = (sunPosition.azimuth * 180 / Math.PI + 180) % 360;
-    
-    const result = {
-        elevation: elevation,
-        azimuth: azimuth
-    };
-    
-    // Debug logging (simplified)
-    console.log(`Sun position at ${date.toISOString()} (UTC):`);
-    console.log(`  Lat: ${latitude.toFixed(3)}°, Lon: ${longitude.toFixed(3)}°`);
-    console.log(`  → Elevation: ${result.elevation.toFixed(1)}°, Azimuth: ${result.azimuth.toFixed(1)}°`);
-    console.log(`  → ${result.elevation > 0 ? 'DAYLIGHT' : 'NIGHTTIME'}`);
-    
-    return result;
-}
-
 function visualizeSunPositions(sunPositions) {
     sunPositions.forEach((sunPos, index) => {
         const timeString = formatTimeUTC(sunPos.absoluteTime);
         
-        // Create main marker at the location
-        const mainIcon = L.divIcon({
-            html: `<div style="
-                width: 16px; 
-                height: 16px; 
-                background-color: ${sunPos.isDaylight ? '#FFD700' : '#2C3E50'}; 
-                border: 2px solid #FFA500; 
-                border-radius: 50%; 
-                display: flex; 
-                align-items: center; 
-                justify-content: center;
-                font-size: 8px;
-                color: white;
-                font-weight: bold;
-                z-index: 1000;
-            ">${index + 1}</div>`,
-            className: 'location-marker',
-            iconSize: [16, 16],
-            iconAnchor: [8, 8]
+        // Calculate car bearing to next point (or use 0 if we can't determine)
+        let carBearing = 0;
+        const pathIndex = Math.floor(sunPos.routeProgress * (routeData.path.length - 1));
+        if (pathIndex < routeData.path.length - 1) {
+            carBearing = calculateBearing(routeData.path[pathIndex], routeData.path[pathIndex + 1]);
+        } else if (pathIndex > 0) {
+            carBearing = calculateBearing(routeData.path[pathIndex - 1], routeData.path[pathIndex]);
+        }
+        
+        // Create car icon marker instead of numbered dot
+        const carSvg = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -30 120 180" width="60" height="120">
+                <g fill="#2563eb" stroke="#1d4ed8" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" transform="rotate(${carBearing} 30 60)">
+                    <!-- Car body -->
+                    <rect x="18" y="20" width="24" height="60" rx="8" fill="#3b82f6"/>
+                    
+                    <!-- Windshield -->
+                    <path d="M22 35 C30 30 30 30 38 35" stroke="#60a5fa" stroke-width="2" fill="none"/>
+                    
+                    <!-- Rear window -->
+                    <path d="M22 65 C30 70 30 70 38 65" stroke="#60a5fa" stroke-width="2" fill="none"/>
+                    
+                    <!-- Headlights -->
+                    <circle cx="25" cy="18" r="2" fill="#fbbf24"/>
+                    <circle cx="35" cy="18" r="2" fill="#fbbf24"/>
+                    
+                    <!-- Wheels -->
+                    <rect x="16" y="28" width="4" height="8" rx="2" fill="#374151"/>
+                    <rect x="40" y="28" width="4" height="8" rx="2" fill="#374151"/>
+                    <rect x="16" y="64" width="4" height="8" rx="2" fill="#374151"/>
+                    <rect x="40" y="64" width="4" height="8" rx="2" fill="#374151"/>
+                </g>
+            </svg>
+        `;
+        
+        const carIcon = L.divIcon({
+            html: carSvg,
+            className: 'car-marker',
+            iconSize: [60, 120],
+            iconAnchor: [30, 60]
         });
         
         const locationMarker = L.marker([sunPos.location[0], sunPos.location[1]], {
-            icon: mainIcon,
+            icon: carIcon,
             zIndexOffset: 1000
         }).addTo(map);
         
@@ -680,16 +665,37 @@ function visualizeSunPositions(sunPositions) {
             createSkyDomeVisualization(sunPos, index);
         }
         
+        // Calculate car side exposures for this position
+        let carSideExposures = { front: 0, back: 0, left: 0, right: 0 };
+        if (sunPos.isDaylight) {
+            carSideExposures = calculateCarSideExposures(
+                { azimuth: sunPos.sunAzimuth, elevation: sunPos.sunElevation }, 
+                carBearing
+            );
+        }
+        
         const popupContent = `
             <div style="font-family: Arial, sans-serif; max-width: 320px;">
-                <h4 style="margin: 0 0 10px 0; color: #333;">Stop #${index + 1} - ${timeString}</h4>
+                <h4 style="margin: 0 0 10px 0; color: #333;">🚗 Stop #${index + 1} - ${timeString}</h4>
+                <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                    <p style="margin: 2px 0;"><strong>🧭 Car Direction:</strong> ${getCompassDirection(carBearing)} (${carBearing.toFixed(1)}°)</p>
+                    <p style="margin: 2px 0;"><strong>📊 Progress:</strong> ${(sunPos.routeProgress * 100).toFixed(1)}% along route</p>
+                </div>
                 <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
                     <p style="margin: 2px 0;"><strong>☀️ Sun Position:</strong></p>
                     <p style="margin: 2px 0;">• <strong>Direction:</strong> ${getCompassDirection(sunPos.sunAzimuth)} (${sunPos.sunAzimuth.toFixed(1)}°)</p>
                     <p style="margin: 2px 0;">• <strong>Height:</strong> ${sunPos.sunElevation.toFixed(1)}° above horizon</p>
                     <p style="margin: 2px 0;">• <strong>Status:</strong> ${getSkyDescription(sunPos.sunElevation)}</p>
                 </div>
-                <p style="margin: 3px 0;"><strong>Progress:</strong> ${(sunPos.routeProgress * 100).toFixed(1)}% along route</p>
+                ${sunPos.isDaylight ? `
+                    <div style="background: #fff3cd; padding: 8px; border-radius: 5px; margin: 10px 0;">
+                        <p style="margin: 2px 0; font-weight: bold;">☀️ Sun Exposure:</p>
+                        <p style="margin: 1px 0;">Front: ${(carSideExposures.front * 100).toFixed(1)}%</p>
+                        <p style="margin: 1px 0;">Back: ${(carSideExposures.back * 100).toFixed(1)}%</p>
+                        <p style="margin: 1px 0;">Left: ${(carSideExposures.left * 100).toFixed(1)}%</p>
+                        <p style="margin: 1px 0;">Right: ${(carSideExposures.right * 100).toFixed(1)}%</p>
+                    </div>
+                ` : '<p style="color: #666; font-style: italic;">🌙 Nighttime - no sun exposure</p>'}
                 <p style="margin: 3px 0; font-size: 12px; color: #666;">
                     ${sunPos.isDaylight ? '🌅 Line color & length show sun height: RED/short = overhead, YELLOW/long = horizon' : '🌙 Nighttime - no sun visible'}
                 </p>
@@ -796,6 +802,46 @@ function createSkyDomeVisualization(sunPos, index) {
     sunMarkers.push(elevationLine);
 }
 
+function clearSunMarkers() {
+    sunMarkers.forEach(marker => {
+        map.removeLayer(marker);
+    });
+    sunMarkers = [];
+}
+
+function refreshSunVisualization() {
+    if (currentSunPositions.length > 0) {
+        clearSunMarkers();
+        visualizeSunPositions(currentSunPositions);
+        console.log(`Refreshed sun visualization with ${currentSunPositions.length} positions at zoom level ${map.getZoom()}`);
+    }
+}
+
+function calculateSunPosition(latitude, longitude, date) {
+    // Use SunCalc library for accurate sun position calculation
+    const sunPosition = SunCalc.getPosition(date, latitude, longitude);
+    
+    // Convert radians to degrees and adjust coordinate system
+    const elevation = sunPosition.altitude * 180 / Math.PI;
+    // SunCalc returns azimuth with 0° = South, convert to 0° = North
+    let azimuth = (sunPosition.azimuth * 180 / Math.PI + 180) % 360;
+    
+    const result = {
+        elevation: elevation,
+        azimuth: azimuth
+    };
+    
+    // Debug logging (simplified)
+    console.log(`Sun position at ${date.toISOString()} (UTC):`);
+    console.log(`  Lat: ${latitude.toFixed(3)}°, Lon: ${longitude.toFixed(3)}°`);
+    console.log(`  → Elevation: ${result.elevation.toFixed(1)}°, Azimuth: ${result.azimuth.toFixed(1)}°`);
+    console.log(`  → ${result.elevation > 0 ? 'DAYLIGHT' : 'NIGHTTIME'}`);
+    
+    return result;
+}
+
+
+
 function getCompassDirection(azimuth) {
     const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
     const index = Math.round(azimuth / 22.5) % 16;
@@ -853,20 +899,6 @@ function getSunMarkerColors(elevation) {
     }
 }
 
-function clearSunMarkers() {
-    sunMarkers.forEach(marker => {
-        map.removeLayer(marker);
-    });
-    sunMarkers = [];
-}
-
-function refreshSunVisualization() {
-    if (currentSunPositions.length > 0) {
-        clearSunMarkers();
-        visualizeSunPositions(currentSunPositions);
-        console.log(`Refreshed sun visualization with ${currentSunPositions.length} positions at zoom level ${map.getZoom()}`);
-    }
-}
 
 function showCarSunExposure() {
     const tripDate = document.getElementById('trip-date').value;
@@ -882,16 +914,14 @@ function showCarSunExposure() {
         return;
     }
     
-    clearCarVisualization();
-    
     // Create UTC datetime from user input
     const startDateTime = createUTCDateTime(tripDate, tripTime);
-    showStatus('Calculating car sun exposure...', 'info');
+    showStatus('Calculating car sun exposure summary...', 'info');
     
     setTimeout(() => {
         const carExposureData = calculateCarSunExposure(routeData.path, startDateTime);
-        visualizeCarSunExposure(carExposureData);
-        showStatus(`Car sun exposure calculated for ${carExposureData.length} points along the route.`, 'success');
+        updateSummaryVisualization(carExposureData);
+        showStatus(`Car sun exposure summary updated.`, 'success');
     }, 500);
 }
 
@@ -1038,104 +1068,7 @@ function updateCarSideColor(elementId, exposureLevel) {
     labelContainer.style.borderColor = yellowIntensity > 50 ? '#d4a574' : 'hsl(214.3 31.8% 91.4%)';
 }
 
-function createCarMarker(carData, index) {
-    const timeString = formatTimeUTC(carData.absoluteTime);
-    
-    // Create rotated car SVG icon
-    const carSvg = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -30 120 180" width="80" height="160">
-            <g fill="#2563eb" stroke="#1d4ed8" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" transform="rotate(${carData.carBearing} 30 60)">
-                <!-- Car body -->
-                <rect x="18" y="20" width="24" height="60" rx="8" fill="#3b82f6"/>
-                
-                <!-- Windshield -->
-                <path d="M22 35 C30 30 30 30 38 35" stroke="#60a5fa" stroke-width="2" fill="none"/>
-                
-                <!-- Rear window -->
-                <path d="M22 65 C30 70 30 70 38 65" stroke="#60a5fa" stroke-width="2" fill="none"/>
-                
-                <!-- Headlights -->
-                <circle cx="25" cy="18" r="2" fill="#fbbf24"/>
-                <circle cx="35" cy="18" r="2" fill="#fbbf24"/>
-                
-                <!-- Wheels -->
-                <rect x="16" y="28" width="4" height="8" rx="2" fill="#374151"/>
-                <rect x="40" y="28" width="4" height="8" rx="2" fill="#374151"/>
-                <rect x="16" y="64" width="4" height="8" rx="2" fill="#374151"/>
-                <rect x="40" y="64" width="4" height="8" rx="2" fill="#374151"/>
-            </g>
-        </svg>
-    `;
-    
-    const carIcon = L.divIcon({
-        html: carSvg,
-        className: 'car-marker',
-        iconSize: [80, 160],
-        iconAnchor: [40, 80]
-    });
-    
-    const carMarker = L.marker([carData.location[0], carData.location[1]], {
-        icon: carIcon,
-        zIndexOffset: 500
-    }).addTo(map);
-    
-    const popupContent = `
-        <div style="font-family: Arial, sans-serif; max-width: 320px;">
-            <h4 style="margin: 0 0 10px 0; color: #333;">🚗 Car Position #${index + 1}</h4>
-            <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
-                <p style="margin: 2px 0;"><strong>🕐 Time:</strong> ${timeString}</p>
-                <p style="margin: 2px 0;"><strong>🧭 Car Direction:</strong> ${getCompassDirection(carData.carBearing)} (${carData.carBearing.toFixed(1)}°)</p>
-                <p style="margin: 2px 0;"><strong>☀️ Sun Direction:</strong> ${getCompassDirection(carData.sunAzimuth)} (${carData.sunAzimuth.toFixed(1)}°)</p>
-                <p style="margin: 2px 0;"><strong>📊 Progress:</strong> ${(carData.routeProgress * 100).toFixed(1)}% along route</p>
-            </div>
-            ${carData.isDaylight ? `
-                <div style="background: #fff3cd; padding: 8px; border-radius: 5px; margin: 10px 0;">
-                    <p style="margin: 2px 0; font-weight: bold;">Sun Exposure:</p>
-                    <p style="margin: 1px 0;">Front: ${(carData.exposures.front * 100).toFixed(1)}%</p>
-                    <p style="margin: 1px 0;">Back: ${(carData.exposures.back * 100).toFixed(1)}%</p>
-                    <p style="margin: 1px 0;">Left: ${(carData.exposures.left * 100).toFixed(1)}%</p>
-                    <p style="margin: 1px 0;">Right: ${(carData.exposures.right * 100).toFixed(1)}%</p>
-                </div>
-            ` : '<p style="color: #666; font-style: italic;">🌙 Nighttime - no sun exposure</p>'}
-        </div>
-    `;
-    
-    carMarker.bindPopup(popupContent);
-    carVisualizationMarkers.push(carMarker);
-}
 
-function visualizeCarSunExposure(carExposureData) {
-    // Console logging for debugging
-    console.log('=== CAR SUN EXPOSURE ANALYSIS ===');
-    console.log(`Analyzed ${carExposureData.length} points along the route:`);
-    
-    carExposureData.forEach((carData, index) => {
-        const timeString = formatTimeUTC(carData.absoluteTime);
-        
-        console.log(`\n--- Point ${index + 1} at ${timeString} ---`);
-        console.log(`Location: [${carData.location[0].toFixed(4)}, ${carData.location[1].toFixed(4)}]`);
-        console.log(`Progress: ${(carData.routeProgress * 100).toFixed(1)}% along route`);
-        console.log(`Car direction: ${getCompassDirection(carData.carBearing)} (${carData.carBearing.toFixed(1)}°)`);
-        console.log(`Sun position: ${getCompassDirection(carData.sunAzimuth)} (${carData.sunAzimuth.toFixed(1)}°), ${carData.sunElevation.toFixed(1)}° elevation`);
-        console.log(`Daylight: ${carData.isDaylight}`);
-        
-        if (carData.isDaylight) {
-            console.log('Sun exposure levels:');
-            console.log(`  Front: ${(carData.exposures.front * 100).toFixed(1)}%`);
-            console.log(`  Back: ${(carData.exposures.back * 100).toFixed(1)}%`);
-            console.log(`  Left: ${(carData.exposures.left * 100).toFixed(1)}%`);
-            console.log(`  Right: ${(carData.exposures.right * 100).toFixed(1)}%`);
-        } else {
-            console.log('  No sun exposure (nighttime)');
-        }
-        
-        // Create car marker with orientation
-        createCarMarker(carData, index);
-    });
-    
-    // Calculate averages and update summary visualization
-    updateSummaryVisualization(carExposureData);
-}
 
 function updateSummaryVisualization(carExposureData) {
     // Calculate average exposures for each side
@@ -1197,12 +1130,6 @@ function clearCarVisualization() {
     // Show placeholder and hide the summary container
     document.getElementById('results-placeholder').style.display = 'flex';
     document.getElementById('car-summary').style.display = 'none';
-    
-    // Clear any remaining markers (though we're not using them anymore)
-    carVisualizationMarkers.forEach(marker => {
-        map.removeLayer(marker);
-    });
-    carVisualizationMarkers = [];
 }
 
 window.onload = initMap;
