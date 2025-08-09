@@ -142,31 +142,9 @@ async function geocodeLocation(address) {
 }
 
 async function calculateRoute(fromLocation, toLocation) {
-    // Try OSRM first as it's most reliable and free
-    try {
-        const result = await tryOSRM(fromLocation, toLocation);
-        if (result) {
-            console.log('Successfully got route from OSRM');
-            return result;
-        }
-    } catch (error) {
-        console.log('OSRM failed:', error.message);
-    }
-    
-    // Try Leaflet Routing Machine as fallback
-    try {
-        const result = await tryLeafletRouting(fromLocation, toLocation);
-        if (result) {
-            console.log('Successfully got route from Leaflet Routing');
-            return result;
-        }
-    } catch (error) {
-        console.log('Leaflet Routing failed:', error.message);
-    }
-    
-    // Final fallback to realistic car route simulation
-    console.log('All routing services failed, using fallback simulation');
-    return calculateRealisticCarRoute(fromLocation, toLocation);
+    const result = await tryOSRM(fromLocation, toLocation);
+    console.log('Successfully got route from OSRM');
+    return result;
 }
 
 async function tryOSRM(fromLocation, toLocation) {
@@ -204,75 +182,7 @@ async function tryOSRM(fromLocation, toLocation) {
     throw new Error('No valid route found in OSRM response');
 }
 
-async function tryLeafletRouting(fromLocation, toLocation) {
-    // Use a different OSRM instance or routing service
-    const alternatives = [
-        `https://routing.openstreetmap.de/routed-car/route/v1/driving/${fromLocation.lng},${fromLocation.lat};${toLocation.lng},${toLocation.lat}?overview=full&geometries=geojson`,
-        `https://api.mapbox.com/directions/v5/mapbox/driving/${fromLocation.lng},${fromLocation.lat};${toLocation.lng},${toLocation.lat}?overview=full&geometries=geojson&access_token=pk.eyJ1IjoidGVzdCIsImEiOiJjazBlZ2xtYmYwZGc4M3J0Y20xZzBuNWdlIn0.y0HB-L_0n0F9T0x_K-DgNw`
-    ];
-    
-    for (const url of alternatives) {
-        try {
-            const response = await fetch(url);
-            if (response.ok) {
-                const data = await response.json();
-                
-                // Handle different response formats
-                if (data.routes && data.routes[0]) {
-                    const route = data.routes[0];
-                    const coordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
-                    
-                    return {
-                        path: coordinates,
-                        distance: route.distance || route.distance_km * 1000,
-                        duration: route.duration || route.duration_s
-                    };
-                }
-            }
-        } catch (error) {
-            console.log('Alternative routing service failed:', error);
-            continue;
-        }
-    }
-    
-    throw new Error('All alternative routing services failed');
-}
 
-function calculateRealisticCarRoute(fromLocation, toLocation) {
-    // Create a more realistic car route by following major highways/roads patterns
-    const path = [];
-    const numSegments = 15;
-    
-    // Add some realistic waypoints that simulate following highways
-    for (let i = 0; i <= numSegments; i++) {
-        const ratio = i / numSegments;
-        let lat = fromLocation.lat + (toLocation.lat - fromLocation.lat) * ratio;
-        let lng = fromLocation.lng + (toLocation.lng - fromLocation.lng) * ratio;
-        
-        // Add some variation to simulate following roads instead of straight line
-        if (i > 0 && i < numSegments) {
-            // Add slight curves that simulate highway routing
-            const variance = 0.02;
-            const curve = Math.sin(ratio * Math.PI * 3) * variance;
-            const perpOffset = Math.cos(ratio * Math.PI * 2) * variance * 0.5;
-            
-            // Apply the variation
-            lat += curve;
-            lng += perpOffset;
-        }
-        
-        path.push([lat, lng]);
-    }
-    
-    const straightDistance = getDistance([fromLocation.lat, fromLocation.lng], [toLocation.lat, toLocation.lng]);
-    const roadDistance = straightDistance * 1.3;
-    
-    return {
-        path,
-        distance: roadDistance,
-        duration: Math.round(roadDistance / 1000 * 60)
-    };
-}
 
 async function visualizeRoutes() {
     const inputs = validateInputs();
