@@ -78,15 +78,6 @@
             z-index: 5;
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
         }
-        .sun-ray {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            height: 2px;
-            background: linear-gradient(to right, #FFD700, rgba(255, 215, 0, 0.3));
-            transform-origin: left center;
-            z-index: 3;
-        }
         .results-panel {
             background: #f8f9fa;
             border-radius: 6px;
@@ -168,16 +159,12 @@
 
         // Test cases
         const testCases = [
-            { name: "Sun directly in front", carBearing: 0, sunAzimuth: 0 },
-            { name: "Sun directly behind", carBearing: 0, sunAzimuth: 180 },
-            { name: "Sun directly to right", carBearing: 0, sunAzimuth: 90 },
-            { name: "Sun directly to left", carBearing: 0, sunAzimuth: 270 },
-            { name: "Sun front-right diagonal (45°)", carBearing: 0, sunAzimuth: 45 },
-            { name: "Sun front-left diagonal (315°)", carBearing: 0, sunAzimuth: 315 },
-            { name: "Reported issue case (348.5°)", carBearing: 0, sunAzimuth: 348.5 },
-            { name: "Car facing East, sun from North", carBearing: 90, sunAzimuth: 0 },
-            { name: "Sun at 1° (almost front)", carBearing: 0, sunAzimuth: 1 },
-            { name: "Sun at 359° (almost front)", carBearing: 0, sunAzimuth: 359 },
+            { name: "Front", carBearing: 0, sunAzimuth: 0 },
+            { name: "Back", carBearing: 0, sunAzimuth: 180 },
+            { name: "Right", carBearing: 0, sunAzimuth: 90 },
+            { name: "Left", carBearing: 0, sunAzimuth: 270 },
+            { name: "Front-right", carBearing: 0, sunAzimuth: 45 },
+            { name: "Front-left", carBearing: 0, sunAzimuth: 315 },
         ];
 
         function createVisualization(testCase) {
