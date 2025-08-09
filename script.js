@@ -48,6 +48,27 @@ function setLoadingState(isLoading, message = '') {
     }
 }
 
+function parseUrlParameters() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromParam = urlParams.get('from');
+    const toParam = urlParams.get('to');
+    
+    if (fromParam) {
+        document.getElementById('route-from').value = decodeURIComponent(fromParam);
+    }
+    
+    if (toParam) {
+        document.getElementById('route-to').value = decodeURIComponent(toParam);
+    }
+    
+    // If both parameters are present, automatically trigger analysis
+    if (fromParam && toParam) {
+        setTimeout(() => {
+            visualizeRoutes();
+        }, 1000); // Small delay to ensure map is fully initialized
+    }
+}
+
 function initMap() {
     map = L.map('map').setView(CONFIG.DEFAULT_CENTER, CONFIG.DEFAULT_ZOOM);
     
@@ -75,7 +96,10 @@ function initMap() {
     document.getElementById('trip-date').value = today.toISOString().split('T')[0];
     document.getElementById('trip-time').value = '08:00';
     
-        showStatus('Map initialized. Enter your route and click "Analyze Sun Exposure".', 'info');
+    // Parse URL parameters and prefill inputs
+    parseUrlParameters();
+    
+    showStatus('Map initialized. Enter your route and click "Analyze Sun Exposure".', 'info');
 }
 
 function showStatus(message, type = 'info') {
