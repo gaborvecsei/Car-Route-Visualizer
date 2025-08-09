@@ -4,29 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- SEO Meta Tags -->
-    <title>Route Sun Exposure Visualizer - Plan Your Trip with Real-Time Sun Analysis</title>
-    <meta name="description" content="Visualize sun exposure on different sides of your car during road trips. Free route planning with real-time sun position analysis. No API key required!">
-    <meta name="keywords" content="sun exposure, route planning, trip planner, car sun protection, driving routes, solar analysis, travel planning">
-    <meta name="author" content="Route Sun Exposure Visualizer">
+    <!-- Meta Tags -->
+    <title>Sun Exposure Route Planner - A Fun Pet Project</title>
+    <meta name="description" content="A fun side project to visualize which side of your car gets sun exposure during road trips. Built for curiosity and entertainment.">
+    <meta name="keywords" content="sun exposure, route planning, pet project, car sun analysis, fun tool">
+    <meta name="author" content="Gabor Vecsei">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://gaborvecsei.github.io/Car-Route-Visualizer/">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://gaborvecsei.github.io/Car-Route-Visualizer/">
-    <meta property="og:title" content="Route Sun Exposure Visualizer - Plan Your Trip with Real-Time Sun Analysis">
-    <meta property="og:description" content="Visualize sun exposure on different sides of your car during road trips. Free route planning with real-time sun position analysis.">
+    <meta property="og:title" content="Sun Exposure Route Planner - A Fun Pet Project">
+    <meta property="og:description" content="A fun side project to see which side of your car gets sun exposure during road trips.">
     <meta property="og:image" content="https://gaborvecsei.github.io/Car-Route-Visualizer/og-image.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:site_name" content="Route Sun Exposure Visualizer">
+    <meta property="og:site_name" content="Sun Exposure Route Planner">
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://gaborvecsei.github.io/Car-Route-Visualizer/">
-    <meta property="twitter:title" content="Route Sun Exposure Visualizer - Plan Your Trip">
-    <meta property="twitter:description" content="Visualize sun exposure on different sides of your car during road trips. Free route planning with real-time sun position analysis.">
+    <meta property="twitter:title" content="Sun Exposure Route Planner - A Fun Pet Project">
+    <meta property="twitter:description" content="A fun side project to see which side of your car gets sun exposure during road trips.">
     <meta property="twitter:image" content="https://gaborvecsei.github.io/Car-Route-Visualizer/og-image.jpg">
     
     <!-- Favicon and App Icons -->
@@ -38,7 +38,7 @@
     <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://unpkg.com">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -46,7 +46,30 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        'roboto': ['Roboto', 'Google Sans', 'system-ui', '-apple-system', 'sans-serif']
+                        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                    },
+                    colors: {
+                        border: "hsl(214.3 31.8% 91.4%)",
+                        input: "hsl(214.3 31.8% 91.4%)",
+                        ring: "hsl(222.2 84% 4.9%)",
+                        background: "hsl(0 0% 100%)",
+                        foreground: "hsl(222.2 84% 4.9%)",
+                        primary: {
+                          DEFAULT: "hsl(222.2 47.4% 11.2%)",
+                          foreground: "hsl(210 40% 98%)",
+                        },
+                        secondary: {
+                          DEFAULT: "hsl(210 40% 96%)",
+                          foreground: "hsl(222.2 84% 4.9%)",
+                        },
+                        muted: {
+                          DEFAULT: "hsl(210 40% 96%)",
+                          foreground: "hsl(215.4 16.3% 46.9%)",
+                        },
+                        accent: {
+                          DEFAULT: "hsl(210 40% 96%)",
+                          foreground: "hsl(222.2 84% 4.9%)",
+                        },
                     }
                 }
             }
@@ -59,99 +82,96 @@
     {
         "@context": "https://schema.org",
         "@type": "WebApplication",
-        "name": "Route Sun Exposure Visualizer",
-        "description": "Visualize sun exposure on different sides of your car during road trips. Free route planning with real-time sun position analysis.",
+        "name": "Sun Exposure Route Planner",
+        "description": "A fun pet project to visualize sun exposure on different sides of your car during road trips.",
         "url": "https://gaborvecsei.github.io/Car-Route-Visualizer/",
-        "applicationCategory": "TravelApplication",
+        "applicationCategory": "EntertainmentApplication",
         "operatingSystem": "Web Browser",
-        "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
-        },
         "featureList": [
-            "Real-time sun position tracking",
-            "Route planning",
-            "Car-side sun exposure visualization",
-            "No API key required"
+            "Sun position tracking",
+            "Route analysis",
+            "Car-side sun exposure estimation"
         ]
     }
     </script>
 </head>
-<body class="font-roboto bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen text-gray-900 leading-relaxed overflow-x-hidden text-base">
-    <a href="#main-content" class="absolute -top-10 left-1 bg-blue-600 text-white px-2 py-2 no-underline rounded z-[1000] font-semibold focus:top-1">Skip to main content</a>
+<body class="font-sans bg-background min-h-screen text-foreground leading-relaxed overflow-x-hidden">
+    <a href="#main-content" class="absolute -top-10 left-1 bg-primary text-primary-foreground px-2 py-2 no-underline rounded z-[1000] font-semibold focus:top-1">Skip to main content</a>
     <div class="max-w-full m-0 p-0 min-h-screen flex flex-col">
-        <header class="px-3 py-3 md:px-6 md:py-6 text-center bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg" role="banner">
-            <h1 class="text-white text-2xl md:text-3xl font-medium tracking-normal mb-1 md:mb-2 font-roboto leading-tight">☀️ Sun Exposure Route Planner</h1>
-            <p class="text-white/90 text-sm md:text-sm m-0 font-normal opacity-90 leading-relaxed">Discover which side of your car gets hit by sun during your journey!</p>
+        <header class="px-4 py-4 text-center border-b" role="banner">
+            <h1 class="text-lg md:text-xl font-semibold mb-1">☀️ Sun Exposure Route Planner</h1>
+            <p class="text-muted-foreground text-xs md:text-sm">Discover which side of your car gets hit by sun during your journey</p>
         </header>
         
-        <main id="main-content" class="flex-1 flex flex-col md:grid md:grid-cols-[300px_1fr] lg:grid-cols-[320px_1fr_300px] xl:grid-cols-[360px_1fr_320px] gap-4 md:gap-4 h-auto md:h-[600px] p-4 md:p-4 bg-transparent" role="main">
+        <main id="main-content" class="flex-1 flex flex-col md:grid md:grid-cols-[280px_1fr] lg:grid-cols-[280px_1fr_280px] gap-4 h-auto md:h-[600px] p-4" role="main">
             <!-- Sidebar with controls -->
-            <section class="bg-white rounded-xl p-6 md:p-6 overflow-y-auto shadow-lg border border-gray-200 w-full md:w-auto mb-4 md:mb-0 flex-shrink-0" aria-label="Route and sun tracking controls">
-                <div class="mb-8 p-0 bg-transparent rounded-none border-none shadow-none">
-                    <h3 class="text-blue-600 text-xl md:text-lg font-semibold mb-6 md:mb-4 flex items-center gap-2 font-roboto before:content-['🗺️'] before:text-xl">Route</h3>
-                    <div class="grid grid-cols-1 gap-6 md:gap-4">
-                        <label for="route-from" class="absolute w-px h-px p-0 -m-px overflow-hidden clip-[rect(0,0,0,0)] whitespace-nowrap border-0">Starting location</label>
-                        <input type="text" id="route-from" value="" class="px-4 py-3 md:py-3 border-2 border-gray-200 rounded-lg md:rounded-lg text-base md:text-base transition-all bg-white text-gray-900 font-normal font-roboto placeholder:text-amber-800 placeholder:font-normal focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100 min-h-[56px] md:min-h-[48px]" placeholder="From" aria-describedby="route-from-help">
-                        <div id="route-from-help" class="sr-only">Enter your starting location</div>
-                        <label for="route-to" class="absolute w-px h-px p-0 -m-px overflow-hidden clip-[rect(0,0,0,0)] whitespace-nowrap border-0">Destination</label>
-                        <input type="text" id="route-to" value="" class="px-4 py-3 md:py-3 border-2 border-gray-200 rounded-lg md:rounded-lg text-base md:text-base transition-all bg-white text-gray-900 font-normal font-roboto placeholder:text-amber-800 placeholder:font-normal focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100 min-h-[56px] md:min-h-[48px]" placeholder="To" aria-describedby="route-to-help">
-                        <div id="route-to-help" class="sr-only">Enter your destination</div>
+            <section class="bg-background rounded-lg p-4 overflow-y-auto border w-full md:w-auto mb-4 md:mb-0 flex-shrink-0" aria-label="Route and sun tracking controls">
+                <div class="mb-4">
+                    <h3 class="text-base font-semibold mb-3 flex items-center gap-2"><span class="text-sm">📍</span> Route</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label for="route-from" class="block text-xs font-medium mb-1">From</label>
+                            <input type="text" id="route-from" value="" class="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" placeholder="Starting location" aria-describedby="route-from-help">
+                            <div id="route-from-help" class="sr-only">Enter your starting location</div>
+                        </div>
+                        <div>
+                            <label for="route-to" class="block text-xs font-medium mb-1">To</label>
+                            <input type="text" id="route-to" value="" class="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" placeholder="Destination" aria-describedby="route-to-help">
+                            <div id="route-to-help" class="sr-only">Enter your destination</div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="mb-8 p-0 bg-transparent rounded-none border-none shadow-none">
-                    <h3 class="text-blue-600 text-xl md:text-lg font-semibold mb-6 md:mb-4 flex items-center gap-2 font-roboto before:content-['☀️'] before:text-xl">Sun Tracking Settings</h3>
-                    <div class="grid grid-cols-1 gap-6 md:gap-4 mb-6 md:mb-4">
-                        <div class="flex flex-col gap-3 md:gap-2">
-                            <label for="trip-date" class="font-semibold text-gray-700 text-base md:text-sm normal-case tracking-normal font-roboto mb-2 md:mb-1">Trip Start Date</label>
-                            <input type="date" id="trip-date" class="px-4 py-3 md:py-3 border-2 border-gray-200 rounded-lg md:rounded-lg text-base md:text-base transition-all bg-white text-gray-900 font-normal font-roboto focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100 min-h-[56px] md:min-h-[48px]">
+                <div class="mb-4">
+                    <h3 class="text-base font-semibold mb-3 flex items-center gap-2"><span class="text-sm">☀️</span> Settings</h3>
+                    <div class="space-y-3 mb-3">
+                        <div>
+                            <label for="trip-date" class="block text-xs font-medium mb-1">Date</label>
+                            <input type="date" id="trip-date" class="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                         </div>
-                        <div class="flex flex-col gap-3 md:gap-2">
-                            <label for="trip-time" class="font-semibold text-gray-700 text-base md:text-sm normal-case tracking-normal font-roboto mb-2 md:mb-1">Start Time</label>
-                            <input type="time" id="trip-time" class="px-4 py-3 md:py-3 border-2 border-gray-200 rounded-lg md:rounded-lg text-base md:text-base transition-all bg-white text-gray-900 font-normal font-roboto focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100 min-h-[56px] md:min-h-[48px]">
+                        <div>
+                            <label for="trip-time" class="block text-xs font-medium mb-1">Time (UTC)</label>
+                            <input type="time" id="trip-time" class="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                         </div>
                     </div>
-                    <div class="flex flex-col md:flex-row items-center gap-4 md:gap-3 p-6 md:p-4 bg-gray-50 rounded-xl justify-center border border-gray-200">
-                        <label for="check-frequency" class="font-semibold text-gray-700 text-base md:text-sm font-roboto text-center md:text-left">Sun Analysis Interval (km):</label>
-                        <input type="number" id="check-frequency" value="5" min="1" max="50" step="1" class="w-24 md:w-20 text-center font-medium px-4 py-3 md:py-3 border-2 border-gray-200 rounded-lg md:rounded-lg text-lg md:text-base transition-all bg-white text-gray-900 font-normal font-roboto focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100 min-h-[56px] md:min-h-[48px]">
+                    <div class="flex items-center justify-between p-3 bg-secondary rounded-lg border">
+                        <label for="analysis-points" class="text-xs font-medium">Points:</label>
+                        <input type="number" id="analysis-points" value="12" min="6" max="20" step="1" class="w-16 text-center rounded-md border border-input bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                     </div>
                 </div>
                 
-                <button id="visualize-btn" class="w-full px-6 py-5 md:py-4 bg-gradient-to-br from-blue-600 to-blue-700 text-white border-none rounded-xl md:rounded-xl text-xl md:text-base font-semibold cursor-pointer transition-all mt-8 md:mt-6 shadow-lg normal-case tracking-normal font-roboto flex items-center justify-center gap-3 md:gap-2 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl hover:-translate-y-0.5 active:from-blue-800 active:to-blue-900 active:shadow-md active:translate-y-0 min-h-[64px] md:min-h-[48px] focus:outline-none focus:ring-4 focus:ring-blue-300" type="button" aria-describedby="analyze-help">
-                    <span class="inline-block text-2xl md:text-base">☀️</span>
-                    Analyze Sun Exposure
+                <button id="visualize-btn" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-8 px-3 py-1 w-full gap-2" type="button" aria-describedby="analyze-help">
+                    Analyze
                 </button>
                 <div id="analyze-help" class="sr-only">Calculate sun exposure for your planned route</div>
             </section>
             
             <!-- Map section -->
-            <section class="bg-white rounded-xl relative overflow-hidden shadow-lg border border-gray-200 w-full h-[500px] md:h-auto mb-4 md:mb-0 flex-shrink-0" aria-label="Interactive map">
+            <section class="bg-background rounded-lg relative overflow-hidden border w-full h-[400px] md:h-auto mb-4 md:mb-0 flex-shrink-0" aria-label="Interactive map">
                 <div id="map" class="h-full w-full" role="img" aria-label="Interactive route map"></div>
-                <div id="status" class="absolute bottom-2 md:bottom-4 left-2 md:left-4 right-2 md:right-4 p-3 md:p-4 text-center rounded-xl font-medium text-sm shadow-lg z-[1000] font-roboto opacity-0 transition-opacity duration-300 [&:not(:empty)]:opacity-100" role="status" aria-live="polite"></div>
+                <div id="status" class="absolute bottom-2 left-2 right-2 p-2 text-center rounded-md text-xs bg-background/95 backdrop-blur-sm border z-[1000] opacity-0 transition-opacity duration-300 [&:not(:empty)]:opacity-100" role="status" aria-live="polite"></div>
             </section>
             
             <!-- Results panel -->
-            <aside class="bg-white rounded-xl p-6 md:p-6 overflow-y-auto shadow-lg border border-gray-200 w-full md:w-auto md:col-span-2 lg:col-span-1 md:border-t lg:border-t-0 lg:border-l min-h-[400px] flex-shrink-0" aria-label="Sun exposure analysis results">
+            <aside class="bg-background rounded-lg p-4 overflow-y-auto border w-full md:w-auto md:col-span-2 lg:col-span-1 min-h-[300px] flex-shrink-0" aria-label="Sun exposure analysis results">
                 <!-- Placeholder when no results -->
-                <div id="results-placeholder" class="flex items-center justify-center h-full p-4 md:p-8">
-                    <div class="text-center max-w-[280px]">
-                        <div class="text-4xl md:text-5xl mb-4 md:mb-6">📊</div>
-                        <h3 class="text-blue-600 text-lg md:text-xl font-semibold mb-3 md:mb-4 font-roboto">Sun Exposure Results</h3>
-                        <p class="text-amber-800 text-sm leading-relaxed mb-4 md:mb-6 font-roboto">Click "Get Sun Analysis" to see which sides of your car will catch the most sun!</p>
-                        <div class="flex flex-col gap-3">
-                            <div class="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl text-xs md:text-sm text-gray-600 border border-gray-200 font-roboto">
-                                <span class="text-lg">🌅</span>
-                                <span>Live sun tracking</span>
+                <div id="results-placeholder" class="flex items-center justify-center h-full p-4">
+                    <div class="text-center max-w-sm">
+                        <div class="text-2xl mb-3">📊</div>
+                        <h3 class="text-base font-semibold mb-2">Results</h3>
+                        <p class="text-muted-foreground text-xs leading-relaxed mb-4">Click "Analyze" to see sun exposure data</p>
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg text-xs border">
+                                <span class="text-sm">🌅</span>
+                                <span>Sun tracking</span>
                             </div>
-                            <div class="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl text-xs md:text-sm text-gray-600 border border-gray-200 font-roboto">
-                                <span class="text-lg">🎯</span>
-                                <span>Exact percentages</span>
+                            <div class="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg text-xs border">
+                                <span class="text-sm">🎯</span>
+                                <span>Percentages</span>
                             </div>
-                            <div class="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl text-xs md:text-sm text-gray-600 border border-gray-200 font-roboto">
-                                <span class="text-lg">🚗</span>
-                                <span>Per-side breakdown</span>
+                            <div class="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg text-xs border">
+                                <span class="text-sm">🚗</span>
+                                <span>Side breakdown</span>
                             </div>
                         </div>
                     </div>
@@ -159,111 +179,237 @@
                 
                 <!-- Results container -->
                 <div id="car-summary" class="block" style="display: none;">
-                    <h3 class="text-center text-blue-600 mb-8 md:mb-6 text-2xl md:text-xl font-semibold flex items-center justify-center gap-3 md:gap-2 font-roboto before:content-['🚗'] before:text-3xl md:before:text-2xl">Sun Exposure Summary</h3>
-                    <div class="flex justify-center items-center mt-4 md:mt-0">
-                        <div class="grid grid-cols-3 grid-rows-3 gap-4 md:gap-3 p-6 md:p-4 scale-100 md:scale-90 lg:scale-100 origin-center" style="grid-template-areas: '. front .' 'left center right' '. back .';">
-                            <!-- Front side -->
-                            <div class="flex flex-col items-center justify-center p-4 md:p-5 border-2 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-white transition-all shadow-lg relative overflow-hidden w-[120px] md:w-[140px] h-[60px] md:h-[70px] hover:before:translate-x-full before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-orange-100/50 before:to-transparent before:-translate-x-full before:transition-transform before:duration-400" id="summary-front" style="grid-area: front;">
-                                <span class="text-xs md:text-xs font-medium text-amber-800 mb-1 md:mb-2 uppercase tracking-wider font-roboto">FRONT</span>
-                                <span class="text-lg md:text-xl font-semibold text-blue-600 font-roboto" id="front-percentage">0%</span>
+                    <h3 class="text-center mb-4 text-base font-semibold">☀️ Sun Exposure Summary</h3>
+                    <div class="flex justify-center items-center px-4 py-6">
+                        <div class="relative">
+                            <!-- Top-down car SVG -->
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 240" width="120" class="mx-auto text-muted-foreground" aria-label="Minimal top-down car outline with wheels and headlamps">
+                                <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <!-- Body -->
+                                    <rect x="20" y="5" width="80" height="230" rx="28"/>
+
+                                    <!-- Windshield / roof arc -->
+                                    <path d="M30 90 C60 68 60 68 90 90"/>
+
+                                    <!-- Cabin waist line -->
+                                    <path d="M30 125 C60 138 60 138 90 125"/>
+
+                                    <!-- Rear window / trunk arc -->
+                                    <path d="M30 170 C60 188 60 188 90 170"/>
+
+                                    <!-- Mirrors -->
+                                    <path d="M20 95 L10 105"/>
+                                    <path d="M100 95 L110 105"/>
+
+                                    <!-- Rear detail -->
+                                    <path d="M50 200 H70"/>
+
+                                    <!-- Wheels -->
+                                    <line x1="10" y1="50" x2="10" y2="90"/>
+                                    <line x1="110" y1="50" x2="110" y2="90"/>
+                                    <line x1="10" y1="150" x2="10" y2="190"/>
+                                    <line x1="110" y1="150" x2="110" y2="190"/>
+
+                                    <!-- Headlamps -->
+                                    <circle cx="35" cy="12" r="4"/>
+                                    <circle cx="85" cy="12" r="4"/>
+                                </g>
+                            </svg>
+                            
+                            <!-- Sun exposure labels positioned around the car -->
+                            <!-- Front -->
+                            <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 text-center">
+                                <div class="bg-background border rounded-lg px-2 py-1 shadow-sm">
+                                    <div class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Front</div>
+                                    <div class="text-sm font-semibold" id="front-percentage">0%</div>
+                                </div>
                             </div>
                             
-                            <!-- Left side -->
-                            <div class="flex flex-col items-center justify-center p-4 md:p-5 border-2 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-white transition-all shadow-lg relative overflow-hidden w-[60px] md:w-[70px] h-[120px] md:h-[140px] hover:before:translate-x-full before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-orange-100/50 before:to-transparent before:-translate-x-full before:transition-transform before:duration-400" id="summary-left" style="grid-area: left;">
-                                <span class="text-xs md:text-xs font-medium text-amber-800 mb-1 md:mb-2 uppercase tracking-wider font-roboto">LEFT</span>
-                                <span class="text-lg md:text-xl font-semibold text-blue-600 font-roboto" id="left-percentage">0%</span>
+                            <!-- Left -->
+                            <div class="absolute top-1/2 -left-12 transform -translate-y-1/2 text-center">
+                                <div class="bg-background border rounded-lg px-2 py-1 shadow-sm">
+                                    <div class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Left</div>
+                                    <div class="text-sm font-semibold" id="left-percentage">0%</div>
+                                </div>
                             </div>
                             
-                            <!-- Center area -->
-                            <div class="w-[120px] md:w-[140px] h-[120px] md:h-[140px] flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-200 border-2 border-blue-600 rounded-xl text-4xl md:text-5xl shadow-lg" style="grid-area: center;">
-                                <span>🚗</span>
+                            <!-- Right -->
+                            <div class="absolute top-1/2 -right-12 transform -translate-y-1/2 text-center">
+                                <div class="bg-background border rounded-lg px-2 py-1 shadow-sm">
+                                    <div class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Right</div>
+                                    <div class="text-sm font-semibold" id="right-percentage">0%</div>
+                                </div>
                             </div>
                             
-                            <!-- Right side -->
-                            <div class="flex flex-col items-center justify-center p-4 md:p-5 border-2 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-white transition-all shadow-lg relative overflow-hidden w-[60px] md:w-[70px] h-[120px] md:h-[140px] hover:before:translate-x-full before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-orange-100/50 before:to-transparent before:-translate-x-full before:transition-transform before:duration-400" id="summary-right" style="grid-area: right;">
-                                <span class="text-xs md:text-xs font-medium text-amber-800 mb-1 md:mb-2 uppercase tracking-wider font-roboto">RIGHT</span>
-                                <span class="text-lg md:text-xl font-semibold text-blue-600 font-roboto" id="right-percentage">0%</span>
-                            </div>
-                            
-                            <!-- Back side -->
-                            <div class="flex flex-col items-center justify-center p-4 md:p-5 border-2 border-gray-200 rounded-xl bg-gradient-to-br from-gray-50 to-white transition-all shadow-lg relative overflow-hidden w-[120px] md:w-[140px] h-[60px] md:h-[70px] hover:before:translate-x-full before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-orange-100/50 before:to-transparent before:-translate-x-full before:transition-transform before:duration-400" id="summary-back" style="grid-area: back;">
-                                <span class="text-xs md:text-xs font-medium text-amber-800 mb-1 md:mb-2 uppercase tracking-wider font-roboto">BACK</span>
-                                <span class="text-lg md:text-xl font-semibold text-blue-600 font-roboto" id="back-percentage">0%</span>
+                            <!-- Back -->
+                            <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-center">
+                                <div class="bg-background border rounded-lg px-2 py-1 shadow-sm">
+                                    <div class="text-xs font-medium text-muted-foreground uppercase tracking-wide">Back</div>
+                                    <div class="text-sm font-semibold" id="back-percentage">0%</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </aside>
         </main>
+
+
         
-        <!-- SEO Content Section -->
-        <section class="bg-gradient-to-br from-white to-gray-50 py-12 px-6 border-t border-gray-200">
-        <div class="max-w-4xl mx-auto">
-            <div class="grid md:grid-cols-2 gap-8 lg:gap-12">
-                <div>
-                    <h2 class="text-2xl md:text-3xl font-bold text-blue-600 mb-4 flex items-center gap-2">
-                        <span class="text-3xl">😎</span>
-                        Why Check Sun Exposure?
-                    </h2>
-                    <div class="space-y-4 text-gray-700 leading-relaxed">
-                        <p class="text-base md:text-lg">This fun project helps you make smart seating decisions for road trips:</p>
-                        <ul class="space-y-2 text-sm md:text-base pl-4">
-                            <li class="flex items-start gap-2"><span class="text-orange-500 font-bold">•</span> <strong>Choose Your Side:</strong> If you can pick where to sit, why not avoid the sunny side?</li>
-                            <li class="flex items-start gap-2"><span class="text-orange-500 font-bold">•</span> <strong>Let Others Cook:</strong> Perfect for deciding who gets the hot seat on long drives</li>
-                            <li class="flex items-start gap-2"><span class="text-orange-500 font-bold">•</span> <strong>Plan Ahead:</strong> Know what to expect before you hit the road</li>
-                            <li class="flex items-start gap-2"><span class="text-orange-500 font-bold">•</span> <strong>Pure Curiosity:</strong> Ever wondered which direction the sun hits during your journey?</li>
-                        </ul>
+        <!-- Route Data Section -->
+        <section class="py-8 px-4 bg-secondary/30">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-lg md:text-xl font-bold mb-4 text-center flex items-center justify-center gap-2">
+                    <span class="text-lg">📊</span>
+                    Route Data
+                </h2>
+                <div class="p-4 bg-background rounded-lg border shadow-sm" id="api-data-section">
+                    <div id="route-data-content">
+                        <p class="text-muted-foreground italic text-center text-sm">Calculate a route above to see the API data being used for analysis...</p>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- Information Section -->
+        <section class="py-12 px-4">
+            <div class="max-w-6xl mx-auto">
+                <div class="grid lg:grid-cols-2 gap-8 lg:gap-12">
+                    <div>
+                        <div class="mb-6">
+                            <h2 class="text-lg md:text-xl font-bold mb-4 flex items-center gap-2">
+                                <span class="text-lg">😎</span>
+                                Why Check Sun Exposure?
+                            </h2>
+                            <div class="space-y-4 leading-relaxed">
+                                <p class="text-sm text-muted-foreground">This project helps you make smart seating decisions for road trips:</p>
+                                <div class="space-y-3">
+                                    <div class="flex items-start gap-3 p-3 bg-secondary/50 rounded-lg">
+                                        <span class="text-lg flex-shrink-0">🪑</span>
+                                        <div>
+                                            <h3 class="font-semibold mb-0.5 text-sm">Choose Your Side</h3>
+                                            <p class="text-muted-foreground text-xs">If you can pick where to sit, why not avoid the sunny side?</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 p-3 bg-secondary/50 rounded-lg">
+                                        <span class="text-lg flex-shrink-0">🔥</span>
+                                        <div>
+                                            <h3 class="font-semibold mb-0.5 text-sm">Let Others Cook</h3>
+                                            <p class="text-muted-foreground text-xs">Perfect for deciding who gets the hot seat on long drives</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 p-3 bg-secondary/50 rounded-lg">
+                                        <span class="text-lg flex-shrink-0">📅</span>
+                                        <div>
+                                            <h3 class="font-semibold mb-0.5 text-sm">Plan Ahead</h3>
+                                            <p class="text-muted-foreground text-xs">Know what to expect before you hit the road</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3 p-3 bg-secondary/50 rounded-lg">
+                                        <span class="text-lg flex-shrink-0">🤔</span>
+                                        <div>
+                                            <h3 class="font-semibold mb-0.5 text-sm">Pure Curiosity</h3>
+                                            <p class="text-muted-foreground text-xs">Ever wondered which direction the sun hits during your journey?</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 
-                <div>
-                    <h2 class="text-2xl md:text-3xl font-bold text-blue-600 mb-4 flex items-center gap-2">
-                        <span class="text-3xl">🔬</span>
-                        How Sun Exposure is Calculated
-                    </h2>
-                    <div class="space-y-4 text-gray-700 leading-relaxed">
-                        <p class="text-base md:text-lg">The calculation uses simplified astronomical formulas with some assumptions to keep it manageable:</p>
-                        <div class="space-y-3 text-sm md:text-base">
-                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                                <h3 class="font-semibold text-blue-800 mb-2">📍 Step 1: Route Analysis</h3>
-                                <p>Get route coordinates from mapping services and calculate vehicle heading between waypoints at your chosen intervals (1-50km).</p>
+                    <div>
+                        <div class="mb-6">
+                            <h2 class="text-lg md:text-xl font-bold mb-4 flex items-center gap-2">
+                                <span class="text-lg">🔬</span>
+                                How Sun Exposure is Calculated
+                            </h2>
+                            <div class="space-y-4 leading-relaxed">
+                                <p class="text-sm text-muted-foreground">This tool provides a <strong>rough estimation</strong> using simplified calculations:</p>
+                                
+                                <div class="space-y-3">
+                                    <div class="p-4 bg-secondary/50 rounded-lg border">
+                                        <div class="flex items-start gap-3 mb-2">
+                                            <span class="text-lg flex-shrink-0">📍</span>
+                                            <h3 class="text-sm font-semibold">Step 1: Route & Time Analysis</h3>
+                                        </div>
+                                        <p class="text-muted-foreground pl-8 text-xs">Uses OpenStreetMap API to get route coordinates and actual travel time. Distributes analysis points evenly along the route.</p>
+                                    </div>
+                                    
+                                    <div class="p-4 bg-secondary/50 rounded-lg border">
+                                        <div class="flex items-start gap-3 mb-2">
+                                            <span class="text-lg flex-shrink-0">☀️</span>
+                                            <h3 class="text-sm font-semibold">Step 2: Sun Position</h3>
+                                        </div>
+                                        <p class="text-muted-foreground pl-8 text-xs">Calculates sun position using SunCalc library. All times are in UTC to keep things simple.</p>
+                                    </div>
+                                    
+                                    <div class="p-4 bg-secondary/50 rounded-lg border">
+                                        <div class="flex items-start gap-3 mb-2">
+                                            <span class="text-lg flex-shrink-0">🎯</span>
+                                            <h3 class="text-sm font-semibold">Step 3: Exposure Estimation</h3>
+                                        </div>
+                                        <p class="text-muted-foreground pl-8 text-xs">Compares sun direction with car orientation to estimate which sides get sun exposure.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="p-4 bg-accent/50 rounded-lg border">
+                                    <h3 class="text-sm font-semibold mb-3 flex items-center gap-2">
+                                        <span class="text-sm">⚠️</span>
+                                        Important Limitations
+                                    </h3>
+                                    <div class="grid grid-cols-1 gap-2 text-xs text-muted-foreground">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-1 h-1 bg-muted-foreground rounded-full flex-shrink-0"></span>
+                                            <span>Assumes constant speed (no traffic/stops)</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-1 h-1 bg-muted-foreground rounded-full flex-shrink-0"></span>
+                                            <span>Ignores terrain, buildings, trees</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-1 h-1 bg-muted-foreground rounded-full flex-shrink-0"></span>
+                                            <span>Perfect weather conditions</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-1 h-1 bg-muted-foreground rounded-full flex-shrink-0"></span>
+                                            <span>Direct sunlight only (no reflections)</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="bg-orange-50 p-4 rounded-lg border border-orange-100">
-                                <h3 class="font-semibold text-orange-800 mb-2">☀️ Step 2: Solar Position</h3>
-                                <p>Calculate sun azimuth and elevation using coordinate pairs, trip date/time, and basic solar declination formulas. Assumes constant travel speed and ignores time zones.</p>
-                            </div>
-                            <div class="bg-green-50 p-4 rounded-lg border border-green-100">
-                                <h3 class="font-semibold text-green-800 mb-2">🎯 Step 3: Exposure Mapping</h3>
-                                <p>Compare sun direction with car orientation to determine which side gets hit. Only considers direct sunlight - no terrain, weather, or shadow calculations.</p>
-                            </div>
-                        </div>
-                        <div class="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200 text-sm">
-                            <p class="text-amber-800"><strong>Note:</strong> This is a fun approximation! Real sun exposure depends on terrain, weather, exact timing, and many other factors we don't account for.</p>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="mt-8 p-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-white text-center">
-                <h3 class="text-lg md:text-xl font-semibold mb-2">🚗 Start Planning Your Comfortable Journey</h3>
-                <p class="text-sm md:text-base opacity-90">Enter your route above and discover which side of your car gets the most sun exposure throughout your trip!</p>
+        </section>
+
+        <!-- Call to Action Section -->
+        <section class="py-8 px-4 bg-primary">
+            <div class="max-w-4xl mx-auto text-center text-primary-foreground">
+                <h2 class="text-lg md:text-xl font-bold mb-4 flex items-center justify-center gap-2">
+                    <span class="text-lg">🚗</span>
+                    Start Planning Your Journey
+                </h2>
+                <p class="text-sm opacity-90 mb-4 max-w-2xl mx-auto">
+                    A tool to satisfy your curiosity about sun exposure during road trips.
+                </p>
             </div>
-        </div>
         </section>
         
-        <footer class="bg-gray-100 border-t border-gray-200 px-3 md:px-6 py-3 md:py-4 mt-auto">
-            <div class="text-center text-xs md:text-sm text-gray-600">
-                <p>&copy; 2025 Route Sun Exposure Visualizer | 
-                    <a href="https://github.com/gaborvecsei/Car-Route-Visualizer" class="text-blue-600 no-underline hover:underline">GitHub</a> | 
-                    <span class="italic text-gray-500">For planning purposes only</span>
+        <footer class="border-t px-4 py-3 mt-auto">
+            <div class="text-center text-xs md:text-sm text-muted-foreground">
+                <p>&copy; 2025 Sun Exposure Route Planner | 
+                    <a href="https://github.com/gaborvecsei/Car-Route-Visualizer" class="text-primary no-underline hover:underline">GitHub</a> | 
+                    <span class="italic">A fun pet project for entertainment only</span>
                 </p>
             </div>
         </footer>
     </div>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="config.js"></script>
-    <script src="script.js"></script>
+    <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+    <script src="config.js?v=3"></script>
+    <script src="script.js?v=3"></script>
     
     <!-- Service Worker Registration - DISABLED FOR DEVELOPMENT -->
     <!--
