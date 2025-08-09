@@ -294,6 +294,9 @@ async function visualizeRoutes() {
         const routeTime = formatDuration(routeData.duration);
         const routeDistance = (routeData.distance / 1000).toFixed(1);
         
+        // Update route data section
+        updateRouteDataSection(routeData);
+        
         showStatus(
             `Route calculated successfully! 📍 Distance: ${routeDistance}km | ⏱️ Time: ${routeTime}`, 
             'success'
@@ -323,6 +326,148 @@ function clearPreviousRoutes() {
     clearCarVisualization();
     currentSunPositions = [];
     routeData = null;
+    
+    // Clear route data section
+    document.getElementById('route-data-content').innerHTML = '<p class="text-muted-foreground italic text-center text-lg">Calculate a route above to see the API data being used for analysis...</p>';
+}
+
+function updateRouteDataSection(routeData) {
+    const routeTime = formatDuration(routeData.duration);
+    const routeDistance = (routeData.distance / 1000).toFixed(1);
+    const numAnalysisPoints = parseInt(document.getElementById('analysis-points').value) || 12;
+    
+    // Get user input times (treat as UTC)
+    const tripDate = document.getElementById('trip-date').value;
+    const tripTime = document.getElementById('trip-time').value;
+    
+    // Calculate arrival time - treat user input as UTC
+    const startDateTime = createUTCDateTime(tripDate, tripTime);
+    const arrivalDateTime = new Date(startDateTime.getTime() + (routeData.duration * 1000));
+    
+    // Format times in UTC
+    const startTimeStr = formatTimeUTC(startDateTime);
+    const arrivalTimeStr = formatTimeUTC(arrivalDateTime);
+    
+    // Generate analysis points details
+    const analysisPointsDetails = generateAnalysisPointsDetails(routeData, startDateTime, numAnalysisPoints);
+    
+    const content = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div class="p-4 bg-secondary/50 rounded-lg border">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="text-xl">📍</span>
+                    <span class="font-semibold">Distance</span>
+                </div>
+                <p class="text-muted-foreground">${routeDistance} km</p>
+                <p class="text-xs text-muted-foreground mt-1">From OpenStreetMap API</p>
+            </div>
+            
+            <div class="p-4 bg-secondary/50 rounded-lg border">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="text-xl">⏱️</span>
+                    <span class="font-semibold">Travel Time</span>
+                </div>
+                <p class="text-muted-foreground">${routeTime}</p>
+                <p class="text-xs text-muted-foreground mt-1">From routing service</p>
+            </div>
+            
+            <div class="p-4 bg-secondary/50 rounded-lg border">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="text-xl">🚀</span>
+                    <span class="font-semibold">Start</span>
+                </div>
+                <p class="text-muted-foreground">${startTimeStr}</p>
+            </div>
+            
+            <div class="p-4 bg-secondary/50 rounded-lg border">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="text-xl">🏁</span>
+                    <span class="font-semibold">Arrival</span>
+                </div>
+                <p class="text-muted-foreground">${arrivalTimeStr}</p>
+            </div>
+        </div>
+        
+        <div class="mt-6 p-4 bg-accent/50 rounded-lg border">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">🎯</span>
+                    <span class="font-semibold">Analysis Points</span>
+                </div>
+                <button onclick="toggleAnalysisPoints()" id="analysis-points-toggle" 
+                        class="text-xs bg-background hover:bg-secondary px-3 py-1.5 rounded border transition-colors font-medium">
+                    Show Details
+                </button>
+            </div>
+            <p class="text-muted-foreground">${numAnalysisPoints} evenly distributed along the route</p>
+            
+            <div id="analysis-points-details" class="mt-4 hidden">
+                <div class="bg-background rounded-lg border max-h-64 overflow-y-auto">
+                    <table class="w-full text-xs">
+                        <thead class="bg-secondary sticky top-0">
+                            <tr class="border-b">
+                                <th class="p-3 text-left font-medium">#</th>
+                                <th class="p-3 text-left font-medium">Progress</th>
+                                <th class="p-3 text-left font-medium">Distance</th>
+                                <th class="p-3 text-left font-medium">UTC Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${analysisPointsDetails}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('route-data-content').innerHTML = content;
+}
+
+function generateAnalysisPointsDetails(routeData, startDateTime, numAnalysisPoints) {
+    const totalDurationSeconds = routeData.duration;
+    const totalDistanceKm = routeData.distance / 1000;
+    const startAbsoluteTime = startDateTime;
+    
+    let details = '';
+    
+    for (let i = 0; i < numAnalysisPoints; i++) {
+        const routeProgress = i / (numAnalysisPoints - 1);
+        const pathIndex = Math.floor(routeProgress * (routeData.path.length - 1));
+        const position = routeData.path[pathIndex];
+        
+        // Calculate time and distance
+        const timeOffsetSeconds = routeProgress * totalDurationSeconds;
+        const traveledDistance = (routeProgress * totalDistanceKm).toFixed(1);
+        const absoluteTimeAtPosition = new Date(startAbsoluteTime.getTime() + (timeOffsetSeconds * 1000));
+        
+        // Format time in UTC
+        const utcTimeStr = formatTimeUTC(absoluteTimeAtPosition);
+        
+        details += `
+            <tr class="border-b hover:bg-secondary/50 transition-colors">
+                <td class="p-3 font-medium">${i + 1}</td>
+                <td class="p-3 text-muted-foreground">${(routeProgress * 100).toFixed(1)}%</td>
+                <td class="p-3 text-muted-foreground">${traveledDistance} km</td>
+                <td class="p-3 text-muted-foreground">${utcTimeStr}</td>
+            </tr>
+        `;
+    }
+    
+    return details;
+}
+
+function toggleAnalysisPoints() {
+    const details = document.getElementById('analysis-points-details');
+    const toggle = document.getElementById('analysis-points-toggle');
+    
+    if (details.classList.contains('hidden')) {
+        details.classList.remove('hidden');
+        toggle.textContent = 'Hide Details';
+    } else {
+        details.classList.add('hidden');
+        toggle.textContent = 'Show Details';
+    }
 }
 
 function formatDuration(durationInSeconds) {
@@ -383,6 +528,23 @@ function getDistance(point1, point2) {
     return R * c;
 }
 
+// Simple UTC-only time handling functions
+function createUTCDateTime(dateStr, timeStr) {
+    // Parse as UTC date and time
+    const utcDateTimeStr = dateStr + 'T' + timeStr + ':00.000Z';
+    return new Date(utcDateTimeStr);
+}
+
+function formatTimeUTC(date) {
+    const timeStr = date.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'UTC'
+    });
+    return `${timeStr} UTC`;
+}
+
 function trackSunPosition() {
     const tripDate = document.getElementById('trip-date').value;
     const tripTime = document.getElementById('trip-time').value;
@@ -399,7 +561,8 @@ function trackSunPosition() {
     
     clearSunMarkers();
     
-    const startDateTime = new Date(tripDate + 'T' + tripTime + ':00');
+    // Create UTC datetime from user input
+    const startDateTime = createUTCDateTime(tripDate, tripTime);
     showStatus('Calculating sun positions and directions...', 'info');
     
     setTimeout(() => {
@@ -412,95 +575,70 @@ function trackSunPosition() {
 
 function calculateSunPositionsAlongRoute(routePath, startDate) {
     const sunPositions = [];
-    let totalDistance = 0;
-    let currentSegmentDistance = 0;
-    let timeOffset = 0;
-    const averageSpeedKmh = 80;
+    const numAnalysisPoints = parseInt(document.getElementById('analysis-points').value) || 12;
+    const totalDurationSeconds = routeData.duration; // Use actual API travel time
     
-    for (let i = 0; i < routePath.length - 1; i++) {
-        const segmentDistance = getDistance(routePath[i], routePath[i + 1]) / 1000;
+    // User input is treated as UTC
+    const startAbsoluteTime = startDate;
+    
+    console.log(`Route starting at ${formatTimeUTC(startDate)}`);
+    console.log(`Analyzing ${numAnalysisPoints} points along route (${formatDuration(totalDurationSeconds)} total travel time)`);
+    
+    // Create evenly distributed analysis points
+    for (let i = 0; i < numAnalysisPoints; i++) {
+        // Calculate position along route (0 to 1)
+        const routeProgress = i / (numAnalysisPoints - 1);
         
-        currentSegmentDistance += segmentDistance;
+        // Get position by distributing points evenly along route path
+        const pathIndex = Math.floor(routeProgress * (routePath.length - 1));
+        const position = routePath[pathIndex];
         
-        if (currentSegmentDistance >= 50 || i === routePath.length - 2) {
-            totalDistance += currentSegmentDistance;
-            
-            const position = routePath[i];
-            const timeAtPosition = new Date(startDate.getTime() + (timeOffset * 60 * 60 * 1000));
-            const sunPosition = calculateSunPosition(position[0], position[1], timeAtPosition);
-            
-            const isDaylight = sunPosition.elevation > 0;
-            
-            console.log(`Stop ${sunPositions.length + 1} at ${timeAtPosition.toLocaleString()}:`);
-            console.log(`  Location: ${position[0].toFixed(3)}, ${position[1].toFixed(3)}`);
-            console.log(`  Sun elevation: ${sunPosition.elevation.toFixed(1)}°, Azimuth: ${sunPosition.azimuth.toFixed(1)}° (${isDaylight ? 'DAY' : 'NIGHT'})`);
-            
-            sunPositions.push({
-                location: position,
-                time: timeAtPosition,
-                distance: totalDistance,
-                sunAzimuth: sunPosition.azimuth,
-                sunElevation: sunPosition.elevation,
-                isDaylight: isDaylight
-            });
-            
-            timeOffset += currentSegmentDistance / averageSpeedKmh;
-            currentSegmentDistance = 0;
-        }
+        // Calculate time at this position using actual API travel time
+        const timeOffsetSeconds = routeProgress * totalDurationSeconds;
+        const absoluteTimeAtPosition = new Date(startAbsoluteTime.getTime() + (timeOffsetSeconds * 1000));
+        
+        // Calculate sun position using UTC time
+        const sunPosition = calculateSunPosition(position[0], position[1], absoluteTimeAtPosition);
+        
+        const isDaylight = sunPosition.elevation > 0;
+        
+        console.log(`Stop ${i + 1} at ${formatTimeUTC(absoluteTimeAtPosition)}:`);
+        console.log(`  Location: ${position[0].toFixed(3)}, ${position[1].toFixed(3)}`);
+        console.log(`  Progress: ${(routeProgress * 100).toFixed(1)}% along route`);
+        console.log(`  Sun elevation: ${sunPosition.elevation.toFixed(1)}°, Azimuth: ${sunPosition.azimuth.toFixed(1)}° (${isDaylight ? 'DAY' : 'NIGHT'})`);
+        
+        sunPositions.push({
+            location: position,
+            absoluteTime: absoluteTimeAtPosition,    // UTC time
+            routeProgress: routeProgress,            // 0-1 progress along route
+            sunAzimuth: sunPosition.azimuth,
+            sunElevation: sunPosition.elevation,
+            isDaylight: isDaylight,
+            // Legacy field for compatibility
+            time: absoluteTimeAtPosition
+        });
     }
     
     return sunPositions;
 }
 
 function calculateSunPosition(latitude, longitude, date) {
-    // Simple but reliable sun position calculation
-    const lat = latitude * Math.PI / 180;
-    const lon = longitude * Math.PI / 180;
+    // Use SunCalc library for accurate sun position calculation
+    const sunPosition = SunCalc.getPosition(date, latitude, longitude);
     
-    // Get day of year
-    const start = new Date(date.getFullYear(), 0, 0);
-    const diff = date - start;
-    const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
-    // Solar declination (simplified)
-    const declination = 23.45 * Math.sin((360 * (284 + dayOfYear) / 365) * Math.PI / 180) * Math.PI / 180;
-    
-    // Hour angle - this is the key calculation
-    const localTime = date.getHours() + date.getMinutes() / 60;
-    
-    // Approximate longitude correction (4 minutes per degree of longitude)
-    const timeZoneCorrection = longitude / 15; // Convert longitude to hours
-    const solarTime = localTime - timeZoneCorrection;
-    
-    // Hour angle from solar noon (positive in afternoon)
-    const hourAngle = (solarTime - 12) * 15 * Math.PI / 180;
-    
-    // Calculate sun elevation
-    const elevation = Math.asin(
-        Math.sin(declination) * Math.sin(lat) + 
-        Math.cos(declination) * Math.cos(lat) * Math.cos(hourAngle)
-    );
-    
-    // Calculate azimuth (0° = North, 90° = East)
-    let azimuth = Math.atan2(
-        Math.sin(hourAngle),
-        Math.cos(hourAngle) * Math.sin(lat) - Math.tan(declination) * Math.cos(lat)
-    );
-    
-    // Convert to 0-360° range
-    azimuth = (azimuth * 180 / Math.PI + 180) % 360;
+    // Convert radians to degrees and adjust coordinate system
+    const elevation = sunPosition.altitude * 180 / Math.PI;
+    // SunCalc returns azimuth with 0° = South, convert to 0° = North
+    let azimuth = (sunPosition.azimuth * 180 / Math.PI + 180) % 360;
     
     const result = {
-        elevation: elevation * 180 / Math.PI,
+        elevation: elevation,
         azimuth: azimuth
     };
     
-    // Debug logging
-    console.log(`Sun position at ${date.toLocaleString()}:`);
+    // Debug logging (simplified)
+    console.log(`Sun position at ${date.toISOString()} (UTC):`);
     console.log(`  Lat: ${latitude.toFixed(3)}°, Lon: ${longitude.toFixed(3)}°`);
-    console.log(`  Local time: ${localTime.toFixed(2)}h, Solar time: ${solarTime.toFixed(2)}h`);
-    console.log(`  Day of year: ${dayOfYear}, Declination: ${(declination * 180 / Math.PI).toFixed(1)}°`);
-    console.log(`  Hour angle: ${(hourAngle * 180 / Math.PI).toFixed(1)}°`);
     console.log(`  → Elevation: ${result.elevation.toFixed(1)}°, Azimuth: ${result.azimuth.toFixed(1)}°`);
     console.log(`  → ${result.elevation > 0 ? 'DAYLIGHT' : 'NIGHTTIME'}`);
     
@@ -509,10 +647,7 @@ function calculateSunPosition(latitude, longitude, date) {
 
 function visualizeSunPositions(sunPositions) {
     sunPositions.forEach((sunPos, index) => {
-        const timeString = sunPos.time.toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        });
+        const timeString = formatTimeUTC(sunPos.absoluteTime);
         
         // Create main marker at the location
         const mainIcon = L.divIcon({
@@ -554,7 +689,7 @@ function visualizeSunPositions(sunPositions) {
                     <p style="margin: 2px 0;">• <strong>Height:</strong> ${sunPos.sunElevation.toFixed(1)}° above horizon</p>
                     <p style="margin: 2px 0;">• <strong>Status:</strong> ${getSkyDescription(sunPos.sunElevation)}</p>
                 </div>
-                <p style="margin: 3px 0;"><strong>Distance:</strong> ${sunPos.distance.toFixed(1)} km from start</p>
+                <p style="margin: 3px 0;"><strong>Progress:</strong> ${(sunPos.routeProgress * 100).toFixed(1)}% along route</p>
                 <p style="margin: 3px 0; font-size: 12px; color: #666;">
                     ${sunPos.isDaylight ? '🌅 Line color & length show sun height: RED/short = overhead, YELLOW/long = horizon' : '🌙 Nighttime - no sun visible'}
                 </p>
@@ -736,7 +871,6 @@ function refreshSunVisualization() {
 function showCarSunExposure() {
     const tripDate = document.getElementById('trip-date').value;
     const tripTime = document.getElementById('trip-time').value;
-    const checkFrequency = parseInt(document.getElementById('check-frequency').value) || 5;
     
     if (!tripDate || !tripTime) {
         showStatus('Please select both date and time for the trip start.', 'error');
@@ -750,66 +884,71 @@ function showCarSunExposure() {
     
     clearCarVisualization();
     
-    const startDateTime = new Date(tripDate + 'T' + tripTime + ':00');
+    // Create UTC datetime from user input
+    const startDateTime = createUTCDateTime(tripDate, tripTime);
     showStatus('Calculating car sun exposure...', 'info');
     
     setTimeout(() => {
-        const carExposureData = calculateCarSunExposure(routeData.path, startDateTime, checkFrequency);
+        const carExposureData = calculateCarSunExposure(routeData.path, startDateTime);
         visualizeCarSunExposure(carExposureData);
         showStatus(`Car sun exposure calculated for ${carExposureData.length} points along the route.`, 'success');
     }, 500);
 }
 
-function calculateCarSunExposure(routePath, startDate, intervalKm) {
+function calculateCarSunExposure(routePath, startDate) {
     const carExposureData = [];
-    let totalDistance = 0;
-    let currentSegmentDistance = 0;
-    let timeOffset = 0;
-    const averageSpeedKmh = 80;
+    const numAnalysisPoints = parseInt(document.getElementById('analysis-points').value) || 12;
+    const totalDurationSeconds = routeData.duration; // Use actual API travel time
     
-    for (let i = 0; i < routePath.length - 1; i++) {
-        const segmentDistance = getDistance(routePath[i], routePath[i + 1]) / 1000;
-        currentSegmentDistance += segmentDistance;
+    // User input is treated as UTC
+    const startAbsoluteTime = startDate;
+    
+    // Create evenly distributed analysis points
+    for (let i = 0; i < numAnalysisPoints; i++) {
+        // Calculate position along route (0 to 1)
+        const routeProgress = i / (numAnalysisPoints - 1);
         
-        if (currentSegmentDistance >= intervalKm || i === routePath.length - 2) {
-            totalDistance += currentSegmentDistance;
-            
-            const position = routePath[i];
-            const timeAtPosition = new Date(startDate.getTime() + (timeOffset * 60 * 60 * 1000));
-            const sunPosition = calculateSunPosition(position[0], position[1], timeAtPosition);
-            
-            // Calculate car orientation (bearing to next point)
-            let carBearing = 0;
-            if (i < routePath.length - 1) {
-                carBearing = calculateBearing(routePath[i], routePath[i + 1]);
-            } else if (i > 0) {
-                carBearing = calculateBearing(routePath[i - 1], routePath[i]);
-            }
-            
-            const isDaylight = sunPosition.elevation > 0;
-            
-            let carSideExposures = {
-                front: 0, back: 0, left: 0, right: 0
-            };
-            
-            if (isDaylight) {
-                carSideExposures = calculateCarSideExposures(sunPosition, carBearing);
-            }
-            
-            carExposureData.push({
-                location: position,
-                time: timeAtPosition,
-                distance: totalDistance,
-                sunAzimuth: sunPosition.azimuth,
-                sunElevation: sunPosition.elevation,
-                carBearing: carBearing,
-                isDaylight: isDaylight,
-                exposures: carSideExposures
-            });
-            
-            timeOffset += currentSegmentDistance / averageSpeedKmh;
-            currentSegmentDistance = 0;
+        // Get position by distributing points evenly along route path
+        const pathIndex = Math.floor(routeProgress * (routePath.length - 1));
+        const position = routePath[pathIndex];
+        
+        // Calculate time at this position using actual API travel time
+        const timeOffsetSeconds = routeProgress * totalDurationSeconds;
+        const absoluteTimeAtPosition = new Date(startAbsoluteTime.getTime() + (timeOffsetSeconds * 1000));
+        
+        // Calculate sun position using UTC time
+        const sunPosition = calculateSunPosition(position[0], position[1], absoluteTimeAtPosition);
+        
+        // Calculate car orientation (bearing to next point)
+        let carBearing = 0;
+        if (pathIndex < routePath.length - 1) {
+            carBearing = calculateBearing(routePath[pathIndex], routePath[pathIndex + 1]);
+        } else if (pathIndex > 0) {
+            carBearing = calculateBearing(routePath[pathIndex - 1], routePath[pathIndex]);
         }
+        
+        const isDaylight = sunPosition.elevation > 0;
+        
+        let carSideExposures = {
+            front: 0, back: 0, left: 0, right: 0
+        };
+        
+        if (isDaylight) {
+            carSideExposures = calculateCarSideExposures(sunPosition, carBearing);
+        }
+        
+        carExposureData.push({
+            location: position,
+            absoluteTime: absoluteTimeAtPosition,    // UTC time
+            routeProgress: routeProgress,            // 0-1 progress along route
+            sunAzimuth: sunPosition.azimuth,
+            sunElevation: sunPosition.elevation,
+            carBearing: carBearing,
+            isDaylight: isDaylight,
+            exposures: carSideExposures,
+            // Legacy field for compatibility
+            time: absoluteTimeAtPosition
+        });
     }
     
     return carExposureData;
@@ -867,21 +1006,36 @@ function getExposureColor(exposureLevel) {
 }
 
 function updateCarSideColor(elementId, exposureLevel) {
-    const element = document.getElementById(elementId);
     const percentage = exposureLevel * 100;
     
-    // Remove existing exposure classes
-    element.classList.remove('exposure-low', 'exposure-medium', 'exposure-high');
+    // Map elementId to the actual label container IDs
+    const labelMapping = {
+        'summary-front': 'front-percentage',
+        'summary-back': 'back-percentage', 
+        'summary-left': 'left-percentage',
+        'summary-right': 'right-percentage'
+    };
     
-    // Add appropriate class based on exposure percentage
-    if (percentage >= 40) {
-        element.classList.add('exposure-high');
-    } else if (percentage >= 20) {
-        element.classList.add('exposure-medium');
-    } else if (percentage > 0) {
-        element.classList.add('exposure-low');
-    }
-    // If percentage is 0, no class is added (uses default styling)
+    const percentageElementId = labelMapping[elementId];
+    if (!percentageElementId) return;
+    
+    const percentageElement = document.getElementById(percentageElementId);
+    if (!percentageElement) return;
+    
+    // Get the parent container (the label box)
+    const labelContainer = percentageElement.closest('.bg-background');
+    if (!labelContainer) return;
+    
+    // Calculate yellow intensity based on exposure level (0-100%)
+    // Higher exposure = more yellow background
+    const yellowIntensity = Math.round(exposureLevel * 255); // 0-255
+    const bgColor = `rgb(255, 255, ${255 - yellowIntensity})`; // Yellow background
+    const textColor = yellowIntensity > 127 ? '#000000' : '#666666'; // Dark text on light yellow
+    
+    // Apply colors
+    labelContainer.style.backgroundColor = bgColor;
+    labelContainer.style.color = textColor;
+    labelContainer.style.borderColor = yellowIntensity > 50 ? '#d4a574' : 'hsl(214.3 31.8% 91.4%)';
 }
 
 function visualizeCarSunExposure(carExposureData) {
@@ -890,14 +1044,11 @@ function visualizeCarSunExposure(carExposureData) {
     console.log(`Analyzed ${carExposureData.length} points along the route:`);
     
     carExposureData.forEach((carData, index) => {
-        const timeString = carData.time.toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        });
+        const timeString = formatTimeUTC(carData.absoluteTime);
         
         console.log(`\n--- Point ${index + 1} at ${timeString} ---`);
         console.log(`Location: [${carData.location[0].toFixed(4)}, ${carData.location[1].toFixed(4)}]`);
-        console.log(`Distance: ${carData.distance.toFixed(1)} km from start`);
+        console.log(`Progress: ${(carData.routeProgress * 100).toFixed(1)}% along route`);
         console.log(`Car direction: ${getCompassDirection(carData.carBearing)} (${carData.carBearing.toFixed(1)}°)`);
         console.log(`Sun position: ${getCompassDirection(carData.sunAzimuth)} (${carData.sunAzimuth.toFixed(1)}°), ${carData.sunElevation.toFixed(1)}° elevation`);
         console.log(`Daylight: ${carData.isDaylight}`);
