@@ -32,7 +32,6 @@
     <!-- Favicon and App Icons -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☀️</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☀️</text></svg>">
-    <link rel="manifest" href="/site.webmanifest">
     <meta name="theme-color" content="#1976d2">
     <meta name="msapplication-TileColor" content="#1976d2">
     <!-- Preconnect for performance -->
@@ -447,36 +446,6 @@
     <script src="config.js?v=3"></script>
     <script src="script.js?v=3"></script>
     
-    <!-- Service Worker Registration - DISABLED FOR DEVELOPMENT -->
-    <!--
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(function(registration) {
-                        console.log('ServiceWorker registration successful:', registration.scope);
-                        
-                        // Handle updates
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // Show update notification
-                                    if (confirm('A new version is available. Refresh to update?')) {
-                                        newWorker.postMessage({type: 'SKIP_WAITING'});
-                                        window.location.reload();
-                                    }
-                                }
-                            });
-                        });
-                    })
-                    .catch(function(error) {
-                        console.log('ServiceWorker registration failed:', error);
-                    });
-            });
-        }
-    </script>
-    -->
     
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-32K7GL7RDQ"></script>
