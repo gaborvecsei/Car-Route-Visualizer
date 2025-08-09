@@ -709,7 +709,7 @@ function createSkyDomeVisualization(sunPos, index) {
     // Create sky dome with reasonable radius but enhanced difference
     const currentZoom = map.getZoom();
     const userSizeMultiplier = 1.0; // Default size multiplier since slider was removed
-    const baseRadius = 3000; // Moderate increase from original 2000m for better visibility
+    const baseRadius = 5000; // Moderate increase from original 2000m for better visibility
     const zoomFactor = Math.pow(2, (11 - currentZoom)); // Scale inversely with zoom
     const horizonRadius = Math.max(200, baseRadius * zoomFactor * userSizeMultiplier); // Reasonable minimum
     
@@ -1038,6 +1038,72 @@ function updateCarSideColor(elementId, exposureLevel) {
     labelContainer.style.borderColor = yellowIntensity > 50 ? '#d4a574' : 'hsl(214.3 31.8% 91.4%)';
 }
 
+function createCarMarker(carData, index) {
+    const timeString = formatTimeUTC(carData.absoluteTime);
+    
+    // Create rotated car SVG icon
+    const carSvg = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 80" width="40" height="80">
+            <g fill="#2563eb" stroke="#1d4ed8" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" transform="rotate(${carData.carBearing} 20 40)">
+                <!-- Car body -->
+                <rect x="8" y="10" width="24" height="60" rx="8" fill="#3b82f6"/>
+                
+                <!-- Windshield -->
+                <path d="M12 25 C20 20 20 20 28 25" stroke="#60a5fa" stroke-width="2" fill="none"/>
+                
+                <!-- Rear window -->
+                <path d="M12 55 C20 60 20 60 28 55" stroke="#60a5fa" stroke-width="2" fill="none"/>
+                
+                <!-- Headlights -->
+                <circle cx="15" cy="8" r="2" fill="#fbbf24"/>
+                <circle cx="25" cy="8" r="2" fill="#fbbf24"/>
+                
+                <!-- Wheels -->
+                <rect x="6" y="18" width="4" height="8" rx="2" fill="#374151"/>
+                <rect x="30" y="18" width="4" height="8" rx="2" fill="#374151"/>
+                <rect x="6" y="54" width="4" height="8" rx="2" fill="#374151"/>
+                <rect x="30" y="54" width="4" height="8" rx="2" fill="#374151"/>
+            </g>
+        </svg>
+    `;
+    
+    const carIcon = L.divIcon({
+        html: carSvg,
+        className: 'car-marker',
+        iconSize: [40, 80],
+        iconAnchor: [20, 40]
+    });
+    
+    const carMarker = L.marker([carData.location[0], carData.location[1]], {
+        icon: carIcon,
+        zIndexOffset: 500
+    }).addTo(map);
+    
+    const popupContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 320px;">
+            <h4 style="margin: 0 0 10px 0; color: #333;">🚗 Car Position #${index + 1}</h4>
+            <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                <p style="margin: 2px 0;"><strong>🕐 Time:</strong> ${timeString}</p>
+                <p style="margin: 2px 0;"><strong>🧭 Car Direction:</strong> ${getCompassDirection(carData.carBearing)} (${carData.carBearing.toFixed(1)}°)</p>
+                <p style="margin: 2px 0;"><strong>☀️ Sun Direction:</strong> ${getCompassDirection(carData.sunAzimuth)} (${carData.sunAzimuth.toFixed(1)}°)</p>
+                <p style="margin: 2px 0;"><strong>📊 Progress:</strong> ${(carData.routeProgress * 100).toFixed(1)}% along route</p>
+            </div>
+            ${carData.isDaylight ? `
+                <div style="background: #fff3cd; padding: 8px; border-radius: 5px; margin: 10px 0;">
+                    <p style="margin: 2px 0; font-weight: bold;">Sun Exposure:</p>
+                    <p style="margin: 1px 0;">Front: ${(carData.exposures.front * 100).toFixed(1)}%</p>
+                    <p style="margin: 1px 0;">Back: ${(carData.exposures.back * 100).toFixed(1)}%</p>
+                    <p style="margin: 1px 0;">Left: ${(carData.exposures.left * 100).toFixed(1)}%</p>
+                    <p style="margin: 1px 0;">Right: ${(carData.exposures.right * 100).toFixed(1)}%</p>
+                </div>
+            ` : '<p style="color: #666; font-style: italic;">🌙 Nighttime - no sun exposure</p>'}
+        </div>
+    `;
+    
+    carMarker.bindPopup(popupContent);
+    carVisualizationMarkers.push(carMarker);
+}
+
 function visualizeCarSunExposure(carExposureData) {
     // Console logging for debugging
     console.log('=== CAR SUN EXPOSURE ANALYSIS ===');
@@ -1062,6 +1128,9 @@ function visualizeCarSunExposure(carExposureData) {
         } else {
             console.log('  No sun exposure (nighttime)');
         }
+        
+        // Create car marker with orientation
+        createCarMarker(carData, index);
     });
     
     // Calculate averages and update summary visualization

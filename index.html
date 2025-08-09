@@ -77,6 +77,24 @@
     </script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
+    <style>
+        /* Car marker styling */
+        .car-marker {
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            transition: transform 0.2s ease;
+        }
+        
+        .car-marker:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Leaflet popup adjustments for car markers */
+        .leaflet-popup-content h4 {
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+    </style>
+    
     <!-- Structured Data -->
     <script type="application/ld+json">
     {
