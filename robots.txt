@@ -1,16 +1,2 @@
 User-agent: *
 Allow: /
-
-# Sitemap
-Sitemap: https://yourdomain.com/sitemap.xml
-
-# Disallow private/admin areas (if any)
-# Disallow: /admin/
-
-# Allow important pages
-Allow: /
-Allow: /privacy.html
-Allow: /index.html
-
-# SEO-friendly rules
-Crawl-delay: 1
