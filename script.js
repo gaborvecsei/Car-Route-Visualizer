@@ -691,7 +691,9 @@ function visualizeSunPositions(sunPositions) {
         
         // Calculate car side exposures for this position
         let carSideExposures = { front: 0, back: 0, left: 0, right: 0 };
+        let relativeSunAngle = 0;
         if (sunPos.isDaylight) {
+            relativeSunAngle = (sunPos.sunAzimuth - carBearing + 360) % 360;
             carSideExposures = calculateCarSideExposures(
                 { azimuth: sunPos.sunAzimuth, elevation: sunPos.sunElevation }, 
                 carBearing
@@ -709,6 +711,7 @@ function visualizeSunPositions(sunPositions) {
                     <p style="margin: 2px 0;"><strong>☀️ Sun Position:</strong></p>
                     <p style="margin: 2px 0;">• <strong>Direction:</strong> ${getCompassDirection(sunPos.sunAzimuth)} (${sunPos.sunAzimuth.toFixed(1)}°)</p>
                     <p style="margin: 2px 0;">• <strong>Height:</strong> ${sunPos.sunElevation.toFixed(1)}° above horizon</p>
+                    ${sunPos.isDaylight ? `<p style="margin: 2px 0;">• <strong>Relative to car:</strong> ${relativeSunAngle.toFixed(1)}°</p>` : ''}
                     <p style="margin: 2px 0;">• <strong>Status:</strong> ${getSkyDescription(sunPos.sunElevation)}</p>
                 </div>
                 ${sunPos.isDaylight ? `
@@ -1025,12 +1028,13 @@ function calculateCarSideExposures(sunPosition, carBearing) {
     
     const calculateSideExposure = (targetAngle, tolerance = 90) => {
         let angle = Math.abs(relativeSunAngle - targetAngle);
-        if (targetAngle === 270 && angle >= 270) angle = 360 - angle;
+        // Handle wraparound for all angles (not just 270°)
+        angle = Math.min(angle, 360 - angle);
         return angle <= tolerance ? Math.cos(angle * Math.PI / 180) : 0;
     };
     
     const rawExposures = {
-        front: calculateSideExposure(Math.min(relativeSunAngle, 360 - relativeSunAngle) <= 90 ? 0 : 360),
+        front: calculateSideExposure(0),
         back: calculateSideExposure(180),
         left: calculateSideExposure(270),
         right: calculateSideExposure(90)
