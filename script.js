@@ -1043,26 +1043,26 @@ function createCarMarker(carData, index) {
     
     // Create rotated car SVG icon
     const carSvg = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 80" width="40" height="80">
-            <g fill="#2563eb" stroke="#1d4ed8" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" transform="rotate(${carData.carBearing} 20 40)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -30 120 180" width="80" height="160">
+            <g fill="#2563eb" stroke="#1d4ed8" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" transform="rotate(${carData.carBearing} 30 60)">
                 <!-- Car body -->
-                <rect x="8" y="10" width="24" height="60" rx="8" fill="#3b82f6"/>
+                <rect x="18" y="20" width="24" height="60" rx="8" fill="#3b82f6"/>
                 
                 <!-- Windshield -->
-                <path d="M12 25 C20 20 20 20 28 25" stroke="#60a5fa" stroke-width="2" fill="none"/>
+                <path d="M22 35 C30 30 30 30 38 35" stroke="#60a5fa" stroke-width="2" fill="none"/>
                 
                 <!-- Rear window -->
-                <path d="M12 55 C20 60 20 60 28 55" stroke="#60a5fa" stroke-width="2" fill="none"/>
+                <path d="M22 65 C30 70 30 70 38 65" stroke="#60a5fa" stroke-width="2" fill="none"/>
                 
                 <!-- Headlights -->
-                <circle cx="15" cy="8" r="2" fill="#fbbf24"/>
-                <circle cx="25" cy="8" r="2" fill="#fbbf24"/>
+                <circle cx="25" cy="18" r="2" fill="#fbbf24"/>
+                <circle cx="35" cy="18" r="2" fill="#fbbf24"/>
                 
                 <!-- Wheels -->
-                <rect x="6" y="18" width="4" height="8" rx="2" fill="#374151"/>
-                <rect x="30" y="18" width="4" height="8" rx="2" fill="#374151"/>
-                <rect x="6" y="54" width="4" height="8" rx="2" fill="#374151"/>
-                <rect x="30" y="54" width="4" height="8" rx="2" fill="#374151"/>
+                <rect x="16" y="28" width="4" height="8" rx="2" fill="#374151"/>
+                <rect x="40" y="28" width="4" height="8" rx="2" fill="#374151"/>
+                <rect x="16" y="64" width="4" height="8" rx="2" fill="#374151"/>
+                <rect x="40" y="64" width="4" height="8" rx="2" fill="#374151"/>
             </g>
         </svg>
     `;
@@ -1070,8 +1070,8 @@ function createCarMarker(carData, index) {
     const carIcon = L.divIcon({
         html: carSvg,
         className: 'car-marker',
-        iconSize: [40, 80],
-        iconAnchor: [20, 40]
+        iconSize: [80, 160],
+        iconAnchor: [40, 80]
     });
     
     const carMarker = L.marker([carData.location[0], carData.location[1]], {
