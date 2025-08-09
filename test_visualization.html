@@ -4,149 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Car Sun Exposure Test Visualization</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f5f5f5;
-        }
-        .test-case {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .test-header {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #333;
-        }
-        .visualization-container {
-            display: flex;
-            gap: 30px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .compass-container {
-            position: relative;
-            width: 300px;
-            height: 300px;
-        }
         .compass-circle {
-            width: 100%;
-            height: 100%;
-            border: 2px solid #ddd;
-            border-radius: 50%;
-            position: relative;
             background: linear-gradient(45deg, #f8f9fa 25%, #fff 25%, #fff 50%, #f8f9fa 50%, #f8f9fa 75%, #fff 75%, #fff);
             background-size: 20px 20px;
         }
-        .compass-directions {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-        }
-        .direction-label {
-            position: absolute;
-            font-weight: bold;
-            font-size: 16px;
-            color: #666;
-        }
-        .car {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 40px;
-            height: 60px;
-            z-index: 10;
-        }
-        .sun {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
+        .sun-glow {
             background: radial-gradient(circle, #FFD700 0%, #FFA500 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            transform: translate(-50%, -50%);
-            z-index: 5;
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
-        }
-        .results-panel {
-            background: #f8f9fa;
-            border-radius: 6px;
-            padding: 15px;
-            min-width: 250px;
-        }
-        .exposure-bar {
-            display: flex;
-            align-items: center;
-            margin: 5px 0;
-        }
-        .exposure-label {
-            width: 60px;
-            font-weight: bold;
-        }
-        .exposure-value {
-            margin-left: 10px;
-            font-weight: bold;
-        }
-        .bar {
-            height: 20px;
-            border-radius: 3px;
-            margin-left: 10px;
-            min-width: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            color: white;
-            text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
-        }
-        .metadata {
-            font-size: 12px;
-            color: #666;
-            margin-top: 10px;
-            line-height: 1.4;
         }
     </style>
 </head>
-<body>
-    <h1>🚗☀️ Car Sun Exposure Test Visualization</h1>
-    <p>Each test case shows the car (blue), sun position (yellow), and resulting exposure percentages.</p>
+<body class="font-sans m-5 bg-gray-100">
+    <h1 class="text-3xl font-bold mb-4 text-gray-800">🚗☀️ Car Sun Exposure Test Visualization</h1>
+    <p class="text-gray-600 mb-6">Each test case shows the car (blue), sun position (yellow), and resulting exposure percentages.</p>
     
     <!-- Interactive Controls -->
-    <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <h2>🎮 Interactive Test</h2>
-        <div style="display: flex; gap: 30px; align-items: center; flex-wrap: wrap;">
+    <div class="bg-white p-5 rounded-lg mb-8 shadow-md">
+        <h2 class="text-xl font-bold mb-4">🎮 Interactive Test</h2>
+        <div class="flex gap-8 items-center flex-wrap">
             <div>
-                <label for="car-bearing-slider" style="display: block; font-weight: bold; margin-bottom: 5px;">
+                <label for="car-bearing-slider" class="block font-bold mb-2">
                     🚗 Car Direction: <span id="car-bearing-value">0°</span> (<span id="car-bearing-compass">N</span>)
                 </label>
                 <input type="range" id="car-bearing-slider" min="0" max="360" value="0" step="1" 
-                       style="width: 200px;" oninput="updateInteractiveTest()">
+                       class="w-48" oninput="updateInteractiveTest()">
             </div>
             
             <div>
-                <label for="sun-azimuth-slider" style="display: block; font-weight: bold; margin-bottom: 5px;">
+                <label for="sun-azimuth-slider" class="block font-bold mb-2">
                     ☀️ Sun Direction: <span id="sun-azimuth-value">0°</span> (<span id="sun-azimuth-compass">N</span>)
                 </label>
                 <input type="range" id="sun-azimuth-slider" min="0" max="360" value="0" step="1" 
-                       style="width: 200px;" oninput="updateInteractiveTest()">
+                       class="w-48" oninput="updateInteractiveTest()">
             </div>
         </div>
         
-        <div id="interactive-test-container" style="margin-top: 20px;"></div>
+        <div id="interactive-test-container" class="mt-5"></div>
     </div>
     
-    <h2>📋 Predefined Test Cases</h2>
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">📋 Predefined Test Cases</h2>
     <div id="test-container"></div>
 
     <!-- Import the main script to use its functions -->
@@ -173,39 +71,39 @@
             const relativeSunAngle = (testCase.sunAzimuth - testCase.carBearing + 360) % 360;
 
             const container = document.createElement('div');
-            container.className = 'test-case';
+            container.className = 'bg-white rounded-lg p-5 my-5 shadow-md';
             
-            // Calculate sun position on compass (150px radius from center)
-            const sunRadius = 120;
+            // Calculate sun position on compass (percentage-based for responsive design)
+            const sunRadiusPercent = 40; // 40% from center
             const sunAngleRad = (testCase.sunAzimuth - 90) * Math.PI / 180; // Adjust for SVG coordinates
-            const sunX = 150 + Math.cos(sunAngleRad) * sunRadius;
-            const sunY = 150 + Math.sin(sunAngleRad) * sunRadius;
+            const sunXPercent = 50 + Math.cos(sunAngleRad) * sunRadiusPercent;
+            const sunYPercent = 50 + Math.sin(sunAngleRad) * sunRadiusPercent;
 
             // Calculate car rotation
             const carRotation = testCase.carBearing;
 
             container.innerHTML = `
-                <div class="test-header">${testCase.name}</div>
-                <div class="visualization-container">
-                    <div class="compass-container">
-                        <div class="compass-circle">
+                <div class="text-lg font-bold mb-4 text-gray-700">${testCase.name}</div>
+                <div class="flex gap-8 items-center flex-wrap">
+                    <div class="relative" style="width: 300px; height: 300px;">
+                        <div class="w-full h-full border-2 border-gray-300 rounded-full relative compass-circle">
                             <!-- Compass directions -->
-                            <div class="compass-directions">
-                                <div class="direction-label" style="top: 5px; left: 50%; transform: translateX(-50%);">N</div>
-                                <div class="direction-label" style="top: 50%; right: 5px; transform: translateY(-50%);">E</div>
-                                <div class="direction-label" style="bottom: 5px; left: 50%; transform: translateX(-50%);">S</div>
-                                <div class="direction-label" style="top: 50%; left: 5px; transform: translateY(-50%);">W</div>
+                            <div class="absolute w-full h-full top-0 left-0">
+                                <div class="absolute font-bold text-base text-gray-600" style="top: 5px; left: 50%; transform: translateX(-50%);">N</div>
+                                <div class="absolute font-bold text-base text-gray-600" style="top: 50%; right: 5px; transform: translateY(-50%);">E</div>
+                                <div class="absolute font-bold text-base text-gray-600" style="bottom: 5px; left: 50%; transform: translateX(-50%);">S</div>
+                                <div class="absolute font-bold text-base text-gray-600" style="top: 50%; left: 5px; transform: translateY(-50%);">W</div>
                             </div>
                             
                             <!-- Sun ray from center to sun -->
                             <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none;">
-                                <line x1="150" y1="150" x2="${sunX}" y2="${sunY}" 
+                                <line x1="50%" y1="50%" x2="${sunXPercent}%" y2="${sunYPercent}%" 
                                       stroke="#FFD700" stroke-width="3" opacity="0.8" 
                                       stroke-dasharray="5,5"/>
                             </svg>
                             
                             <!-- Car at center -->
-                            <div class="car" style="transform: translate(-50%, -50%) rotate(${carRotation}deg);">
+                            <div class="absolute top-1/2 left-1/2 w-10 h-15 z-10" style="transform: translate(-50%, -50%) rotate(${carRotation}deg);">
                                 <svg width="40" height="60" viewBox="0 0 40 60">
                                     <!-- Car body -->
                                     <rect x="8" y="5" width="24" height="50" rx="6" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1"/>
@@ -235,42 +133,46 @@
                             </div>
                             
                             <!-- Sun position -->
-                            <div class="sun" style="left: ${sunX}px; top: ${sunY}px;">☀</div>
+                            <div class="absolute w-8 h-8 rounded-full flex items-center justify-center text-base z-10 sun-glow" style="left: ${sunXPercent}%; top: ${sunYPercent}%; transform: translate(-50%, -50%);">☀</div>
                         </div>
                     </div>
                     
-                    <div class="results-panel">
-                        <h3>Sun Exposure Results</h3>
+                    <div class="bg-gray-50 rounded-md p-4 min-w-64">
+                        <h3 class="text-lg font-semibold mb-3">Sun Exposure Results</h3>
                         
-                        <div class="exposure-bar">
-                            <span class="exposure-label">Front:</span>
-                            <div class="bar" style="width: ${Math.max(30, result.front * 150)}px; background: linear-gradient(to right, #ff4444, #ff8888);">
+                        <div class="flex items-center my-1">
+                            <span class="w-14 font-bold">Front:</span>
+                            <div class="h-5 rounded ml-2 min-w-8 flex items-center justify-center text-xs font-bold text-white" 
+                                 style="width: ${Math.max(30, result.front * 150)}px; background: linear-gradient(to right, #ff4444, #ff8888); text-shadow: 1px 1px 1px rgba(0,0,0,0.5);">
                                 ${(result.front * 100).toFixed(1)}%
                             </div>
                         </div>
                         
-                        <div class="exposure-bar">
-                            <span class="exposure-label">Back:</span>
-                            <div class="bar" style="width: ${Math.max(30, result.back * 150)}px; background: linear-gradient(to right, #44ff44, #88ff88);">
+                        <div class="flex items-center my-1">
+                            <span class="w-14 font-bold">Back:</span>
+                            <div class="h-5 rounded ml-2 min-w-8 flex items-center justify-center text-xs font-bold text-white" 
+                                 style="width: ${Math.max(30, result.back * 150)}px; background: linear-gradient(to right, #44ff44, #88ff88); text-shadow: 1px 1px 1px rgba(0,0,0,0.5);">
                                 ${(result.back * 100).toFixed(1)}%
                             </div>
                         </div>
                         
-                        <div class="exposure-bar">
-                            <span class="exposure-label">Left:</span>
-                            <div class="bar" style="width: ${Math.max(30, result.left * 150)}px; background: linear-gradient(to right, #4444ff, #8888ff);">
+                        <div class="flex items-center my-1">
+                            <span class="w-14 font-bold">Left:</span>
+                            <div class="h-5 rounded ml-2 min-w-8 flex items-center justify-center text-xs font-bold text-white" 
+                                 style="width: ${Math.max(30, result.left * 150)}px; background: linear-gradient(to right, #4444ff, #8888ff); text-shadow: 1px 1px 1px rgba(0,0,0,0.5);">
                                 ${(result.left * 100).toFixed(1)}%
                             </div>
                         </div>
                         
-                        <div class="exposure-bar">
-                            <span class="exposure-label">Right:</span>
-                            <div class="bar" style="width: ${Math.max(30, result.right * 150)}px; background: linear-gradient(to right, #ff44ff, #ff88ff);">
+                        <div class="flex items-center my-1">
+                            <span class="w-14 font-bold">Right:</span>
+                            <div class="h-5 rounded ml-2 min-w-8 flex items-center justify-center text-xs font-bold text-white" 
+                                 style="width: ${Math.max(30, result.right * 150)}px; background: linear-gradient(to right, #ff44ff, #ff88ff); text-shadow: 1px 1px 1px rgba(0,0,0,0.5);">
                                 ${(result.right * 100).toFixed(1)}%
                             </div>
                         </div>
                         
-                        <div class="metadata">
+                        <div class="text-xs text-gray-600 mt-3 leading-relaxed">
                             <strong>Car Direction:</strong> ${getCompassDirection(testCase.carBearing)} (${testCase.carBearing}°)<br>
                             <strong>Sun Direction:</strong> ${getCompassDirection(testCase.sunAzimuth)} (${testCase.sunAzimuth}°)<br>
                             <strong>Relative Sun Angle:</strong> ${relativeSunAngle.toFixed(1)}°<br>
