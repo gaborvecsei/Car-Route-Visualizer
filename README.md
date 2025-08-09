@@ -2,6 +2,8 @@
 
 Analyze which side of your car gets hit by the sun during road trips.
 
+![Route Sun Exposure Visualizer](art/index.jpeg)
+
 ## Calculations
 
 ### Car Sun Exposure Model
@@ -28,6 +30,10 @@ The exposure values are normalized so that:
 $$E_{front} + E_{back} + E_{left} + E_{right} = 1$$
 
 This ensures the total sun energy hitting the car is conserved and distributed among the sides based on geometry.
+
+## Interactive Sun Exposure Visualization
+
+![Interactive Sun Exposure Visualization](art/exposure_test.png)
 
 ## Limitations
 
