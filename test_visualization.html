@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Sun Exposure Test Visualization</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .compass-circle {
+            background: linear-gradient(45deg, #f8f9fa 25%, #fff 25%, #fff 50%, #f8f9fa 50%, #f8f9fa 75%, #fff 75%, #fff);
+            background-size: 20px 20px;
+        }
+        .sun-glow {
+            background: radial-gradient(circle, #FFD700 0%, #FFA500 100%);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+        }
+    </style>
+</head>
+<body class="font-sans m-5 bg-gray-100">
+    <h1 class="text-3xl font-bold mb-4 text-gray-800">🚗☀️ Car Sun Exposure Test Visualization</h1>
+    <p class="text-gray-600 mb-6">Each test case shows the car (blue), sun position (yellow), and resulting exposure percentages.</p>
+    
+    <!-- Interactive Controls -->
+    <div class="bg-white p-5 rounded-lg mb-8 shadow-md">
+        <h2 class="text-xl font-bold mb-4">🎮 Interactive Test</h2>
+        <div class="flex gap-8 items-center flex-wrap">
+            <div>
+                <label for="car-bearing-slider" class="block font-bold mb-2">
+                    🚗 Car Direction: <span id="car-bearing-value">0°</span> (<span id="car-bearing-compass">N</span>)
+                </label>
+                <input type="range" id="car-bearing-slider" min="0" max="360" value="0" step="1" 
+                       class="w-48" oninput="updateInteractiveTest()">
+            </div>
+            
+            <div>
+                <label for="sun-azimuth-slider" class="block font-bold mb-2">
+                    ☀️ Sun Direction: <span id="sun-azimuth-value">0°</span> (<span id="sun-azimuth-compass">N</span>)
+                </label>
+                <input type="range" id="sun-azimuth-slider" min="0" max="360" value="0" step="1" 
+                       class="w-48" oninput="updateInteractiveTest()">
+            </div>
+        </div>
+        
+        <div id="interactive-test-container" class="mt-5"></div>
+    </div>
+    
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">📋 Predefined Test Cases</h2>
+    <div id="test-container"></div>
+
+    <!-- Import the main script to use its functions -->
+    <script src="script.js"></script>
+    
+    <script>
+        // Test functions are now available from script.js:
+        // - calculateCarSideExposures()
+        // - getCompassDirection()
+
+        // Test cases
+        const testCases = [
+            { name: "Front", carBearing: 0, sunAzimuth: 0 },
+            { name: "Back", carBearing: 0, sunAzimuth: 180 },
+            { name: "Right", carBearing: 0, sunAzimuth: 90 },
+            { name: "Left", carBearing: 0, sunAzimuth: 270 },
+            { name: "Front-right", carBearing: 0, sunAzimuth: 45 },
+            { name: "Front-left", carBearing: 0, sunAzimuth: 315 },
+        ];
+
+        function createVisualization(testCase) {
+            const sunPosition = { azimuth: testCase.sunAzimuth, elevation: 45 };
+            const result = calculateCarSideExposures(sunPosition, testCase.carBearing);
+            const relativeSunAngle = (testCase.sunAzimuth - testCase.carBearing + 360) % 360;
+
+            const container = document.createElement('div');
+            container.className = 'bg-white rounded-lg p-5 my-5 shadow-md';
+            
+            // Calculate sun position on compass (percentage-based for responsive design)
+            const sunRadiusPercent = 40; // 40% from center
+            const sunAngleRad = (testCase.sunAzimuth - 90) * Math.PI / 180; // Adjust for SVG coordinates
+            const sunXPercent = 50 + Math.cos(sunAngleRad) * sunRadiusPercent;
+            const sunYPercent = 50 + Math.sin(sunAngleRad) * sunRadiusPercent;
+
+            // Calculate car rotation
+            const carRotation = testCase.carBearing;
+
+            container.innerHTML = `
+                <div class="text-lg font-bold mb-4 text-gray-700">${testCase.name}</div>
+                <div class="flex gap-8 items-center flex-wrap">
+                    <div class="relative" style="width: 300px; height: 300px;">
+                        <div class="w-full h-full border-2 border-gray-300 rounded-full relative compass-circle">
+                            <!-- Compass directions -->
+                            <div class="absolute w-full h-full top-0 left-0">
+                                <div class="absolute font-bold text-base text-gray-600" style="top: 5px; left: 50%; transform: translateX(-50%);">N</div>
+                                <div class="absolute font-bold text-base text-gray-600" style="top: 50%; right: 5px; transform: translateY(-50%);">E</div>
+                                <div class="absolute font-bold text-base text-gray-600" style="bottom: 5px; left: 50%; transform: translateX(-50%);">S</div>
+                                <div class="absolute font-bold text-base text-gray-600" style="top: 50%; left: 5px; transform: translateY(-50%);">W</div>
+                            </div>
+                            
+                            <!-- Sun ray from center to sun -->
+                            <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none;">
+                                <line x1="50%" y1="50%" x2="${sunXPercent}%" y2="${sunYPercent}%" 
+                                      stroke="#FFD700" stroke-width="3" opacity="0.8" 
+                                      stroke-dasharray="5,5"/>
+                            </svg>
+                            
+                            <!-- Car at center -->
+                            <div class="absolute top-1/2 left-1/2 w-10 h-15 z-10" style="transform: translate(-50%, -50%) rotate(${carRotation}deg);">
+                                <svg width="40" height="60" viewBox="0 0 40 60">
+                                    <!-- Car body -->
+                                    <rect x="8" y="5" width="24" height="50" rx="6" fill="#3b82f6" stroke="#1d4ed8" stroke-width="1"/>
+                                    
+                                    <!-- Windshield (front) -->
+                                    <rect x="10" y="7" width="20" height="8" rx="2" fill="#60a5fa"/>
+                                    
+                                    <!-- Rear window -->
+                                    <rect x="10" y="45" width="20" height="8" rx="2" fill="#60a5fa"/>
+                                    
+                                    <!-- Headlights -->
+                                    <circle cx="15" cy="3" r="2" fill="#fbbf24"/>
+                                    <circle cx="25" cy="3" r="2" fill="#fbbf24"/>
+                                    
+                                    <!-- Wheels -->
+                                    <rect x="6" y="12" width="4" height="8" rx="2" fill="#374151"/>
+                                    <rect x="30" y="12" width="4" height="8" rx="2" fill="#374151"/>
+                                    <rect x="6" y="40" width="4" height="8" rx="2" fill="#374151"/>
+                                    <rect x="30" y="40" width="4" height="8" rx="2" fill="#374151"/>
+                                    
+                                    <!-- Side labels for reference -->
+                                    <text x="20" y="-2" text-anchor="middle" font-size="8" fill="#000">F</text>
+                                    <text x="37" y="32" text-anchor="middle" font-size="8" fill="#000">R</text>
+                                    <text x="20" y="58" text-anchor="middle" font-size="8" fill="#000">B</text>
+                                    <text x="3" y="32" text-anchor="middle" font-size="8" fill="#000">L</text>
+                                </svg>
+                            </div>
+                            
+                            <!-- Sun position -->
+                            <div class="absolute w-8 h-8 rounded-full flex items-center justify-center text-base z-10 sun-glow" style="left: ${sunXPercent}%; top: ${sunYPercent}%; transform: translate(-50%, -50%);">☀</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-md p-4 min-w-64">
+                        <h3 class="text-lg font-semibold mb-3">Sun Exposure Results</h3>
+                        
+                        <div class="flex items-center my-1">
+                            <span class="w-14 font-bold">Front:</span>
+                            <div class="h-5 rounded ml-2 min-w-8 flex items-center justify-center text-xs font-bold text-white" 
+                                 style="width: ${Math.max(30, result.front * 150)}px; background: linear-gradient(to right, #ff4444, #ff8888); text-shadow: 1px 1px 1px rgba(0,0,0,0.5);">
+                                ${(result.front * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center my-1">
+                            <span class="w-14 font-bold">Back:</span>
+                            <div class="h-5 rounded ml-2 min-w-8 flex items-center justify-center text-xs font-bold text-white" 
+                                 style="width: ${Math.max(30, result.back * 150)}px; background: linear-gradient(to right, #44ff44, #88ff88); text-shadow: 1px 1px 1px rgba(0,0,0,0.5);">
+                                ${(result.back * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center my-1">
+                            <span class="w-14 font-bold">Left:</span>
+                            <div class="h-5 rounded ml-2 min-w-8 flex items-center justify-center text-xs font-bold text-white" 
+                                 style="width: ${Math.max(30, result.left * 150)}px; background: linear-gradient(to right, #4444ff, #8888ff); text-shadow: 1px 1px 1px rgba(0,0,0,0.5);">
+                                ${(result.left * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center my-1">
+                            <span class="w-14 font-bold">Right:</span>
+                            <div class="h-5 rounded ml-2 min-w-8 flex items-center justify-center text-xs font-bold text-white" 
+                                 style="width: ${Math.max(30, result.right * 150)}px; background: linear-gradient(to right, #ff44ff, #ff88ff); text-shadow: 1px 1px 1px rgba(0,0,0,0.5);">
+                                ${(result.right * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                        
+                        <div class="text-xs text-gray-600 mt-3 leading-relaxed">
+                            <strong>Car Direction:</strong> ${getCompassDirection(testCase.carBearing)} (${testCase.carBearing}°)<br>
+                            <strong>Sun Direction:</strong> ${getCompassDirection(testCase.sunAzimuth)} (${testCase.sunAzimuth}°)<br>
+                            <strong>Relative Sun Angle:</strong> ${relativeSunAngle.toFixed(1)}°<br>
+                            <strong>Total:</strong> ${((result.front + result.back + result.left + result.right) * 100).toFixed(1)}%
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return container;
+        }
+
+        // Interactive test update function
+        function updateInteractiveTest() {
+            const carBearing = parseInt(document.getElementById('car-bearing-slider').value);
+            const sunAzimuth = parseInt(document.getElementById('sun-azimuth-slider').value);
+            
+            // Update labels
+            document.getElementById('car-bearing-value').textContent = carBearing + '°';
+            document.getElementById('car-bearing-compass').textContent = getCompassDirection(carBearing);
+            document.getElementById('sun-azimuth-value').textContent = sunAzimuth + '°';
+            document.getElementById('sun-azimuth-compass').textContent = getCompassDirection(sunAzimuth);
+            
+            // Create test case and visualization
+            const interactiveTestCase = {
+                name: "Interactive Test",
+                carBearing: carBearing,
+                sunAzimuth: sunAzimuth
+            };
+            
+            const container = document.getElementById('interactive-test-container');
+            container.innerHTML = '';
+            container.appendChild(createVisualization(interactiveTestCase));
+        }
+
+        // Generate all visualizations
+        window.onload = function() {
+            const container = document.getElementById('test-container');
+            testCases.forEach(testCase => {
+                container.appendChild(createVisualization(testCase));
+            });
+            
+            // Initialize interactive test
+            updateInteractiveTest();
+        };
+    </script>
+</body>
+</html>
