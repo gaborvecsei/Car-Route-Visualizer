@@ -131,6 +131,31 @@
     <h1>🚗☀️ Car Sun Exposure Test Visualization</h1>
     <p>Each test case shows the car (blue), sun position (yellow), and resulting exposure percentages.</p>
     
+    <!-- Interactive Controls -->
+    <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h2>🎮 Interactive Test</h2>
+        <div style="display: flex; gap: 30px; align-items: center; flex-wrap: wrap;">
+            <div>
+                <label for="car-bearing-slider" style="display: block; font-weight: bold; margin-bottom: 5px;">
+                    🚗 Car Direction: <span id="car-bearing-value">0°</span> (<span id="car-bearing-compass">N</span>)
+                </label>
+                <input type="range" id="car-bearing-slider" min="0" max="360" value="0" step="1" 
+                       style="width: 200px;" oninput="updateInteractiveTest()">
+            </div>
+            
+            <div>
+                <label for="sun-azimuth-slider" style="display: block; font-weight: bold; margin-bottom: 5px;">
+                    ☀️ Sun Direction: <span id="sun-azimuth-value">0°</span> (<span id="sun-azimuth-compass">N</span>)
+                </label>
+                <input type="range" id="sun-azimuth-slider" min="0" max="360" value="0" step="1" 
+                       style="width: 200px;" oninput="updateInteractiveTest()">
+            </div>
+        </div>
+        
+        <div id="interactive-test-container" style="margin-top: 20px;"></div>
+    </div>
+    
+    <h2>📋 Predefined Test Cases</h2>
     <div id="test-container"></div>
 
     <script>
@@ -294,12 +319,38 @@
             return container;
         }
 
+        // Interactive test update function
+        function updateInteractiveTest() {
+            const carBearing = parseInt(document.getElementById('car-bearing-slider').value);
+            const sunAzimuth = parseInt(document.getElementById('sun-azimuth-slider').value);
+            
+            // Update labels
+            document.getElementById('car-bearing-value').textContent = carBearing + '°';
+            document.getElementById('car-bearing-compass').textContent = getCompassDirection(carBearing);
+            document.getElementById('sun-azimuth-value').textContent = sunAzimuth + '°';
+            document.getElementById('sun-azimuth-compass').textContent = getCompassDirection(sunAzimuth);
+            
+            // Create test case and visualization
+            const interactiveTestCase = {
+                name: "Interactive Test",
+                carBearing: carBearing,
+                sunAzimuth: sunAzimuth
+            };
+            
+            const container = document.getElementById('interactive-test-container');
+            container.innerHTML = '';
+            container.appendChild(createVisualization(interactiveTestCase));
+        }
+
         // Generate all visualizations
         window.onload = function() {
             const container = document.getElementById('test-container');
             testCases.forEach(testCase => {
                 container.appendChild(createVisualization(testCase));
             });
+            
+            // Initialize interactive test
+            updateInteractiveTest();
         };
     </script>
 </body>
