@@ -52,6 +52,9 @@ function parseUrlParameters() {
     const urlParams = new URLSearchParams(window.location.search);
     const fromParam = urlParams.get('from');
     const toParam = urlParams.get('to');
+    const dateParam = urlParams.get('date');
+    const timeParam = urlParams.get('utctime');
+    const pointsParam = urlParams.get('points');
     
     if (fromParam) {
         document.getElementById('route-from').value = decodeURIComponent(fromParam);
@@ -61,12 +64,43 @@ function parseUrlParameters() {
         document.getElementById('route-to').value = decodeURIComponent(toParam);
     }
     
+    if (dateParam) {
+        document.getElementById('trip-date').value = dateParam;
+    }
+    
+    if (timeParam) {
+        document.getElementById('trip-time').value = timeParam;
+    }
+    
+    if (pointsParam) {
+        const points = parseInt(pointsParam);
+        if (points >= 6 && points <= 20) {
+            document.getElementById('analysis-points').value = points;
+        }
+    }
+    
     // If both parameters are present, automatically trigger analysis
     if (fromParam && toParam) {
         setTimeout(() => {
             visualizeRoutes();
         }, 1000); // Small delay to ensure map is fully initialized
     }
+}
+
+function updateUrlWithParameters(routeFrom, routeTo) {
+    const tripDate = document.getElementById('trip-date').value;
+    const tripTime = document.getElementById('trip-time').value;
+    const analysisPoints = document.getElementById('analysis-points').value;
+    
+    const params = new URLSearchParams();
+    params.set('from', encodeURIComponent(routeFrom));
+    params.set('to', encodeURIComponent(routeTo));
+    params.set('date', tripDate);
+    params.set('utctime', tripTime);
+    params.set('points', analysisPoints);
+    
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.pushState({ path: newUrl }, '', newUrl);
 }
 
 function initMap() {
@@ -221,6 +255,9 @@ async function visualizeRoutes() {
             `Route calculated successfully! 📍 Distance: ${routeDistance}km | ⏱️ Time: ${routeTime}`, 
             'success'
         );
+        
+        // Update URL with query parameters
+        updateUrlWithParameters(inputs.routeFrom, inputs.routeTo);
         
         // Automatically calculate sun positions and car exposure after routes are ready
         setTimeout(() => {
