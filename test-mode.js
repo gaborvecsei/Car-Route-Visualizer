@@ -27,19 +27,19 @@ const switchMode = (mode) => {
     // Update button styles
     const routeBtn = document.getElementById('route-mode-btn');
     const testBtn = document.getElementById('test-mode-btn');
-    const primaryClasses = ['bg-primary', 'text-primary-foreground'];
-    const secondaryClasses = ['bg-secondary', 'text-secondary-foreground'];
+    const activeClasses = ['bg-gray-900', 'text-white'];
+    const inactiveClasses = ['bg-transparent', 'text-gray-600'];
     
     if (isRoute) {
-        routeBtn.classList.add(...primaryClasses);
-        routeBtn.classList.remove(...secondaryClasses);
-        testBtn.classList.remove(...primaryClasses);
-        testBtn.classList.add(...secondaryClasses);
+        routeBtn.classList.add(...activeClasses);
+        routeBtn.classList.remove(...inactiveClasses);
+        testBtn.classList.remove(...activeClasses);
+        testBtn.classList.add(...inactiveClasses);
     } else {
-        testBtn.classList.add(...primaryClasses);
-        testBtn.classList.remove(...secondaryClasses);
-        routeBtn.classList.remove(...primaryClasses);
-        routeBtn.classList.add(...secondaryClasses);
+        testBtn.classList.add(...activeClasses);
+        testBtn.classList.remove(...inactiveClasses);
+        routeBtn.classList.remove(...activeClasses);
+        routeBtn.classList.add(...inactiveClasses);
         initTestMode();
         
         // Smooth scroll to test section
@@ -155,7 +155,7 @@ const initTestMode = () => {
     if (buttonsContainer && buttonsContainer.children.length === 0) {
         testCases.forEach(testCase => {
             const button = document.createElement('button');
-            button.className = 'px-3 py-2 text-xs bg-secondary hover:bg-secondary/80 rounded-md border transition-colors font-medium';
+            button.className = 'px-3 py-2 text-sm bg-white hover:bg-gray-50 rounded-md border border-gray-200 hover:border-gray-300 transition-colors font-medium';
             button.textContent = testCase.name;
             button.onclick = () => runTestCase(testCase);
             buttonsContainer.appendChild(button);
