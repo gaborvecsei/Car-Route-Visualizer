@@ -6,13 +6,17 @@ const CONFIG = {
     NOMINATIM_URL: 'https://nominatim.openstreetmap.org/search'
 };
 
-// Single State Object Pattern - unified state management
+// Single State Object Pattern - unified state management with validation
 const AppState = {
     route: { data: null, layer: null },
     sun: { positions: [], markers: [] },
     car: { markers: [] },
     ui: { loading: false, status: '', timeout: null },
-    get isReady() { return this.route.data !== null; }
+    get isReady() { return this.route.data !== null; },
+    
+    // Add validation methods
+    validateRoute() { return this.route.data?.path?.length > 0; },
+    validateSunData() { return Array.isArray(this.sun.positions) && this.sun.positions.length > 0; }
 };
 
 // DOM element cache - populated once on initialization  
@@ -33,8 +37,8 @@ const setLoadingState = (isLoading, message = '') => {
     
     if (isLoading) {
         button.disabled = true;
-        button.classList.add('loading');
-        button.innerHTML = `<span class="button-icon">⏳</span> ${message || 'Analyzing...'}`;
+        button.classList.add('opacity-75');
+        button.textContent = message || 'Analyzing...';
         AppState.ui.loading = true;
         
         if (AppState.ui.timeout) clearTimeout(AppState.ui.timeout);
@@ -43,8 +47,8 @@ const setLoadingState = (isLoading, message = '') => {
         }, 15000);
     } else {
         button.disabled = false;
-        button.classList.remove('loading');
-        button.innerHTML = `<span class="button-icon">☀️</span> Analyze Sun Exposure`;
+        button.classList.remove('opacity-75');
+        button.textContent = 'Analyze Route';
         AppState.ui.loading = false;
         
         if (AppState.ui.timeout) {
@@ -131,13 +135,23 @@ const initMap = () => {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
     
-    // Event delegation pattern - single handler for multiple events
+    // Simplified event handlers - direct binding for better performance
+    DOM.visualizeBtn.addEventListener('click', visualizeRoutes);
+    document.getElementById('route-mode-btn')?.addEventListener('click', () => window.switchMode?.('route'));
+    document.getElementById('test-mode-btn')?.addEventListener('click', () => window.switchMode?.('test'));
+    document.getElementById('try-test-mode')?.addEventListener('click', () => window.switchMode?.('test'));
+    
+    // Delegate only dynamic events (analysis-points-toggle is created dynamically)
     document.addEventListener('click', e => {
-        const handlers = {
-            'visualize-btn': visualizeRoutes,
-            'analysis-points-toggle': toggleAnalysisPoints
-        };
-        handlers[e.target.id]?.();
+        if (e.target.id === 'analysis-points-toggle') toggleAnalysisPoints();
+    });
+    
+    // Test mode slider events with null check
+    const sliders = ['car-bearing-slider', 'sun-azimuth-slider'];
+    sliders.forEach(id => {
+        document.getElementById(id)?.addEventListener('input', () => {
+            window.updateInteractiveTest?.();
+        });
     });
     
     // Keypress events for inputs
@@ -155,8 +169,20 @@ const initMap = () => {
 };
 
 const showStatus = (message, type = 'info') => {
-    DOM.status.textContent = message;
-    DOM.status.className = `status-message ${type}`;
+    if (!DOM.status) return;
+    
+    const statusColors = {
+        info: 'border-blue-200 bg-blue-50 text-blue-900',
+        success: 'border-green-200 bg-green-50 text-green-900',
+        error: 'border-red-200 bg-red-50 text-red-900',
+        warning: 'border-amber-200 bg-amber-50 text-amber-900'
+    };
+    
+    // Use requestAnimationFrame to optimize DOM updates
+    requestAnimationFrame(() => {
+        DOM.status.textContent = message;
+        DOM.status.className = `absolute bottom-3 left-3 right-3 p-3 text-center rounded-md text-sm bg-white/95 backdrop-blur-sm border shadow-sm z-[1000] opacity-0 transition-opacity duration-300 [&:not(:empty)]:opacity-100 ${statusColors[type] || statusColors.info}`;
+    });
 };
 
 const validateInputs = () => {
@@ -227,6 +253,14 @@ const calculateRoute = async (fromLocation, toLocation) => {
     throw new Error('No valid route found in OSRM response');
 };
 
+// Utility function - moved to top for reuse
+const formatDuration = (seconds) => {
+    const totalMinutes = Math.round(seconds / 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+};
+
 const visualizeRoutes = async () => {
     const routeFrom = DOM.routeFrom.value.trim();
     const routeTo = DOM.routeTo.value.trim();
@@ -254,14 +288,6 @@ const visualizeRoutes = async () => {
         displayRoute(AppState.route.data, CONFIG.ROUTE_COLORS.ROUTE1, 'Route');
         fitMapToRoutes([AppState.route.data]);
         updateRouteDataSection(AppState.route.data);
-        
-        // Format duration inline
-        const formatDuration = (seconds) => {
-            const totalMinutes = Math.round(seconds / 60);
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = totalMinutes % 60;
-            return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-        };
         
         const routeDistance = (AppState.route.data.distance / 1000).toFixed(1);
         const routeTime = formatDuration(AppState.route.data.duration);
@@ -293,7 +319,7 @@ const clearPreviousRoutes = () => {
     AppState.sun.positions = [];
     AppState.route.data = null;
     
-    DOM.routeDataContent.innerHTML = '<p class="text-muted-foreground italic text-center text-lg">Calculate a route above to see the API data being used for analysis...</p>';
+    DOM.routeDataContent.innerHTML = '<p class="text-gray-500 text-center text-sm">Calculate a route to see analysis data</p>';
 };
 
 // Template utilities
@@ -302,22 +328,16 @@ const formatTime = date => date.toLocaleTimeString('en-US', {
 }) + ' UTC';
 
 const createCard = (icon, title, value, subtitle = '') => `
-    <div class="p-4 bg-secondary/50 rounded-lg border">
-        <div class="flex items-center gap-3 mb-2">
-            <span class="text-xl">${icon}</span>
-            <span class="font-semibold">${title}</span>
+    <div class="p-4 bg-white rounded-lg border border-gray-200">
+        <div class="flex items-center gap-2 mb-2">
+            <span class="text-amber-500">${icon}</span>
+            <span class="font-medium text-gray-700 text-sm">${title}</span>
         </div>
-        <p class="text-muted-foreground">${value}</p>
-        ${subtitle ? `<p class="text-xs text-muted-foreground mt-1">${subtitle}</p>` : ''}
+        <p class="text-gray-900 text-lg font-semibold">${value}</p>
+        ${subtitle ? `<p class="text-xs text-gray-500 mt-1">${subtitle}</p>` : ''}
     </div>`;
 
 const updateRouteDataSection = (routeData) => {
-    const formatDuration = (seconds) => {
-        const totalMinutes = Math.round(seconds / 60);
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-        return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-    };
     
     const routeDistance = (routeData.distance / 1000).toFixed(1);
     const routeTime = formatDuration(routeData.duration);
@@ -327,38 +347,37 @@ const updateRouteDataSection = (routeData) => {
     const arrivalDateTime = new Date(startDateTime.getTime() + (routeData.duration * 1000));
     
     DOM.routeDataContent.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            ${createCard('📍', 'Distance', `${routeDistance} km`, 'From OpenStreetMap API')}
-            ${createCard('⏱️', 'Travel Time', routeTime, 'From routing service')}
-            ${createCard('🚀', 'Start', formatTime(startDateTime))}
-            ${createCard('🏁', 'Arrival', formatTime(arrivalDateTime))}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            ${createCard('📍', 'Distance', `${routeDistance} km`, 'OpenStreetMap')}
+            ${createCard('⏱️', 'Duration', routeTime, 'Estimated')}
+            ${createCard('🕑', 'Start', formatTime(startDateTime), '')}
+            ${createCard('🏁', 'Arrival', formatTime(arrivalDateTime), '')}
         </div>
         
-        <div class="mt-6 p-4 bg-accent/50 rounded-lg border">
-            <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-3">
-                    <span class="text-xl">🎯</span>
-                    <span class="font-semibold">Analysis Points</span>
+        <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+            <div class="flex items-center justify-between mb-3">
+                <div>
+                    <span class="font-medium text-gray-900">Analysis Points</span>
+                    <p class="text-sm text-gray-600 mt-1">${numAnalysisPoints} points along the route</p>
                 </div>
-                <button onclick="toggleAnalysisPoints()" id="analysis-points-toggle" 
-                        class="text-xs bg-background hover:bg-secondary px-3 py-1.5 rounded border transition-colors font-medium">
-                    Show Details
+                <button id="analysis-points-toggle" 
+                        class="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors cursor-pointer">
+                    Show Details →
                 </button>
             </div>
-            <p class="text-muted-foreground">${numAnalysisPoints} evenly distributed along the route</p>
             
             <div id="analysis-points-details" class="mt-4 hidden">
-                <div class="bg-background rounded-lg border max-h-64 overflow-y-auto">
-                    <table class="w-full text-xs">
-                        <thead class="bg-secondary sticky top-0">
-                            <tr class="border-b">
-                                <th class="p-3 text-left font-medium">#</th>
-                                <th class="p-3 text-left font-medium">Progress</th>
-                                <th class="p-3 text-left font-medium">Distance</th>
-                                <th class="p-3 text-left font-medium">UTC Time</th>
+                <div class="bg-white rounded-md border border-gray-200 max-h-64 overflow-y-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 sticky top-0 border-b">
+                            <tr>
+                                <th class="p-3 text-left font-medium text-gray-700">#</th>
+                                <th class="p-3 text-left font-medium text-gray-700">Progress</th>
+                                <th class="p-3 text-left font-medium text-gray-700">Distance</th>
+                                <th class="p-3 text-left font-medium text-gray-700">Time</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-gray-100">
                             ${generateAnalysisPointsDetails(routeData, startDateTime, numAnalysisPoints)}
                         </tbody>
                     </table>
@@ -377,11 +396,11 @@ const generateAnalysisPointsDetails = (routeData, startDateTime, numAnalysisPoin
         const absoluteTimeAtPosition = new Date(startDateTime.getTime() + (timeOffsetSeconds * 1000));
         
         return `
-            <tr class="border-b hover:bg-secondary/50 transition-colors">
-                <td class="p-3 font-medium">${i + 1}</td>
-                <td class="p-3 text-muted-foreground">${(routeProgress * 100).toFixed(1)}%</td>
-                <td class="p-3 text-muted-foreground">${traveledDistance} km</td>
-                <td class="p-3 text-muted-foreground">${formatTime(absoluteTimeAtPosition)}</td>
+            <tr class="hover:bg-gray-50 transition-colors">
+                <td class="p-3 text-gray-900">${i + 1}</td>
+                <td class="p-3 text-gray-600">${(routeProgress * 100).toFixed(1)}%</td>
+                <td class="p-3 text-gray-600">${traveledDistance} km</td>
+                <td class="p-3 text-gray-600">${formatTime(absoluteTimeAtPosition)}</td>
             </tr>`;
     }).join('');
 };
@@ -389,10 +408,16 @@ const generateAnalysisPointsDetails = (routeData, startDateTime, numAnalysisPoin
 const toggleAnalysisPoints = () => {
     const details = document.getElementById('analysis-points-details');
     const toggle = document.getElementById('analysis-points-toggle');
+    
+    if (!details || !toggle) {
+        console.error('Toggle elements not found:', { details, toggle });
+        return;
+    }
+    
     const isHidden = details.classList.contains('hidden');
     
     details.classList.toggle('hidden');
-    toggle.textContent = isHidden ? 'Hide Details' : 'Show Details';
+    toggle.textContent = isHidden ? 'Hide Details' : 'Show Details →';
 };
 
 const displayRoute = (routeData, color, label) => {
@@ -403,13 +428,6 @@ const displayRoute = (routeData, color, label) => {
     }).addTo(map);
     
     AppState.route.layer = layer;
-    
-    const formatDuration = (seconds) => {
-        const totalMinutes = Math.round(seconds / 60);
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-        return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-    };
     
     layer.bindPopup(`
         <strong>${label}</strong><br>
@@ -639,7 +657,10 @@ const createSkyDomeVisualization = (sunPos, index) => {
 };
 
 const clearSunMarkers = () => {
-    AppState.sun.markers.forEach(marker => map.removeLayer(marker));
+    AppState.sun.markers.forEach(marker => {
+        if (marker.remove) marker.remove();
+        else map.removeLayer(marker);
+    });
     AppState.sun.markers = [];
 };
 
@@ -766,45 +787,47 @@ const updateSummaryVisualization = (carExposureData) => {
     const daylightData = carExposureData.filter(data => data.isDaylight);
     const sides = ['front', 'back', 'left', 'right'];
     
-    if (daylightData.length === 0) {
-        sides.forEach(side => {
-            updateCarSideColor(side, 0);
-            document.getElementById(`${side}-percentage`).textContent = '0%';
-        });
-    } else {
-        // Calculate and apply average exposures
-        const avgExposures = sides.reduce((acc, side) => {
+    const avgExposures = daylightData.length > 0 
+        ? sides.reduce((acc, side) => {
             acc[side] = daylightData.reduce((sum, data) => sum + data.exposures[side], 0) / daylightData.length;
             return acc;
-        }, {});
+        }, {})
+        : sides.reduce((acc, side) => ({ ...acc, [side]: 0 }), {});
+    
+    // Update UI for all sides
+    const exposureStats = sides.map(side => {
+        const exposure = avgExposures[side];
+        updateCarSideColor(side, exposure);
+        document.getElementById(`${side}-percentage`).textContent = `${(exposure * 100).toFixed(0)}%`;
+        return { side, exposure };
+    });
+    
+    // Log summary if daylight data exists
+    if (daylightData.length > 0) {
+        const maxExposure = exposureStats.reduce((max, current) => current.exposure > max.exposure ? current : max);
+        const minExposure = exposureStats.reduce((min, current) => current.exposure < min.exposure ? current : min);
         
-        let maxExposure = { side: '', value: -1 };
-        let minExposure = { side: '', value: 2 };
-        
-        Object.entries(avgExposures).forEach(([side, exposure]) => {
-            updateCarSideColor(side, exposure);
-            document.getElementById(`${side}-percentage`).textContent = `${(exposure * 100).toFixed(0)}%`;
-            
-            if (exposure > maxExposure.value) maxExposure = { side, value: exposure };
-            if (exposure < minExposure.value) minExposure = { side, value: exposure };
-        });
-        
-        // Console summary
         console.log('\n=== TRIP SUMMARY ===');
         console.log('Average sun exposure levels:');
-        sides.forEach(side => console.log(`  ${side.charAt(0).toUpperCase() + side.slice(1)}: ${(avgExposures[side] * 100).toFixed(1)}%`));
-        console.log(`Most exposed: ${maxExposure.side} (${(maxExposure.value * 100).toFixed(1)}%)`);
-        console.log(`Least exposed: ${minExposure.side} (${(minExposure.value * 100).toFixed(1)}%)`);
+        exposureStats.forEach(({ side, exposure }) => 
+            console.log(`  ${side.charAt(0).toUpperCase() + side.slice(1)}: ${(exposure * 100).toFixed(1)}%`)
+        );
+        console.log(`Most exposed: ${maxExposure.side} (${(maxExposure.exposure * 100).toFixed(1)}%)`);
+        console.log(`Least exposed: ${minExposure.side} (${(minExposure.exposure * 100).toFixed(1)}%)`);
     }
     
     // Toggle visibility
-    DOM.resultsPlaceholder.style.display = 'none';
-    DOM.carSummary.style.display = 'block';
+    DOM.resultsPlaceholder.classList.add('hidden');
+    DOM.carSummary.classList.remove('hidden');
 };
 
 const clearCarVisualization = () => {
-    DOM.resultsPlaceholder.style.display = 'flex';
-    DOM.carSummary.style.display = 'none';
+    DOM.resultsPlaceholder.classList.remove('hidden');
+    DOM.resultsPlaceholder.classList.add('flex');
+    DOM.carSummary.classList.add('hidden');
 };
+
+// Expose functions to global scope for onclick handlers
+window.toggleAnalysisPoints = toggleAnalysisPoints;
 
 window.onload = initMap;
