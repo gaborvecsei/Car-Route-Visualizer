@@ -319,7 +319,7 @@ const clearPreviousRoutes = () => {
     AppState.sun.positions = [];
     AppState.route.data = null;
     
-    DOM.routeDataContent.innerHTML = '<p class="text-muted-foreground italic text-center text-lg">Calculate a route above to see the API data being used for analysis...</p>';
+    DOM.routeDataContent.innerHTML = '<p class="text-gray-500 text-center text-sm">Calculate a route to see analysis data</p>';
 };
 
 // Template utilities
