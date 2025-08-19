@@ -135,9 +135,22 @@ const initMap = () => {
     document.addEventListener('click', e => {
         const handlers = {
             'visualize-btn': visualizeRoutes,
-            'analysis-points-toggle': toggleAnalysisPoints
+            'analysis-points-toggle': toggleAnalysisPoints,
+            'route-mode-btn': () => window.switchMode && switchMode('route'),
+            'test-mode-btn': () => window.switchMode && switchMode('test'),
+            'try-test-mode': () => window.switchMode && switchMode('test'),
+            'footer-test-mode': () => window.switchMode && switchMode('test')
         };
         handlers[e.target.id]?.();
+    });
+    
+    // Event listeners for test mode sliders
+    document.addEventListener('input', e => {
+        if (['car-bearing-slider', 'sun-azimuth-slider'].includes(e.target.id)) {
+            if (window.updateInteractiveTest) {
+                updateInteractiveTest();
+            }
+        }
     });
     
     // Keypress events for inputs
