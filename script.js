@@ -360,8 +360,8 @@ const updateRouteDataSection = (routeData) => {
                     <span class="font-medium text-gray-900">Analysis Points</span>
                     <p class="text-sm text-gray-600 mt-1">${numAnalysisPoints} points along the route</p>
                 </div>
-                <button onclick="toggleAnalysisPoints()" id="analysis-points-toggle" 
-                        class="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors">
+                <button id="analysis-points-toggle" 
+                        class="text-sm text-amber-600 hover:text-amber-700 font-medium transition-colors cursor-pointer">
                     Show Details →
                 </button>
             </div>
@@ -408,6 +408,12 @@ const generateAnalysisPointsDetails = (routeData, startDateTime, numAnalysisPoin
 const toggleAnalysisPoints = () => {
     const details = document.getElementById('analysis-points-details');
     const toggle = document.getElementById('analysis-points-toggle');
+    
+    if (!details || !toggle) {
+        console.error('Toggle elements not found:', { details, toggle });
+        return;
+    }
+    
     const isHidden = details.classList.contains('hidden');
     
     details.classList.toggle('hidden');
@@ -826,5 +832,8 @@ const clearCarVisualization = () => {
     DOM.resultsPlaceholder.classList.add('flex');
     DOM.carSummary.classList.add('hidden');
 };
+
+// Expose functions to global scope for onclick handlers
+window.toggleAnalysisPoints = toggleAnalysisPoints;
 
 window.onload = initMap;
