@@ -817,13 +817,14 @@ const updateSummaryVisualization = (carExposureData) => {
     }
     
     // Toggle visibility
-    DOM.resultsPlaceholder.style.display = 'none';
-    DOM.carSummary.style.display = 'block';
+    DOM.resultsPlaceholder.classList.add('hidden');
+    DOM.carSummary.classList.remove('hidden');
 };
 
 const clearCarVisualization = () => {
-    DOM.resultsPlaceholder.style.display = 'flex';
-    DOM.carSummary.style.display = 'none';
+    DOM.resultsPlaceholder.classList.remove('hidden');
+    DOM.resultsPlaceholder.classList.add('flex');
+    DOM.carSummary.classList.add('hidden');
 };
 
 window.onload = initMap;

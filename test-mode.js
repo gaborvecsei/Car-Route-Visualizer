@@ -12,17 +12,47 @@ const testCases = [
 
 const switchMode = (mode) => {
     currentMode = mode;
-    const routeElements = ['route-sidebar', 'results-placeholder', 'car-summary'];
+    const routeElements = ['route-sidebar'];
     const testElements = ['test-sidebar', 'test-results'];
     const isRoute = mode === 'route';
     
-    // Toggle element visibility
-    [...routeElements, ...testElements].forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const shouldShow = isRoute ? routeElements.includes(id) : testElements.includes(id);
-        el.classList.toggle('test-mode-hidden', !shouldShow);
-    });
+    // Handle results elements separately to maintain their state
+    const resultsPlaceholder = document.getElementById('results-placeholder');
+    const carSummary = document.getElementById('car-summary');
+    
+    if (isRoute) {
+        // Show route sidebar
+        document.getElementById('route-sidebar').classList.remove('hidden');
+        document.getElementById('test-sidebar').classList.add('hidden');
+        document.getElementById('test-results').classList.add('hidden');
+        
+        // Restore the correct results state when returning to route mode
+        // Check if we have actual results by checking if any percentage is not "0%"
+        const frontPercentage = document.getElementById('front-percentage');
+        const hasResults = frontPercentage && frontPercentage.textContent !== '0%';
+        
+        if (hasResults) {
+            // Show the actual results
+            if (resultsPlaceholder) resultsPlaceholder.classList.add('hidden');
+            if (carSummary) carSummary.classList.remove('hidden');
+        } else {
+            // Show the placeholder
+            if (resultsPlaceholder) {
+                resultsPlaceholder.classList.remove('hidden');
+                resultsPlaceholder.classList.add('flex');
+            }
+            if (carSummary) carSummary.classList.add('hidden');
+        }
+    } else {
+        // Show test sidebar, hide route results
+        document.getElementById('route-sidebar').classList.add('hidden');
+        document.getElementById('test-sidebar').classList.remove('hidden');
+        document.getElementById('test-results').classList.remove('hidden');
+        
+        // Hide both results elements when switching to test mode
+        if (resultsPlaceholder) resultsPlaceholder.classList.add('hidden');
+        if (carSummary) carSummary.classList.add('hidden');
+    }
     
     // Update button styles
     const routeBtn = document.getElementById('route-mode-btn');

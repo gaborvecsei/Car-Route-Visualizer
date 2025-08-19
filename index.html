@@ -62,63 +62,25 @@
     </script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        .car-marker { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); transition: transform 0.2s ease; }
-        .car-marker:hover { transform: scale(1.1); }
-        .test-mode-hidden { display: none !important; }
-        .loading-spin { animation: spin 1s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        
-        /* Minimal range slider */
+        /* Minimal custom CSS for range sliders - Tailwind doesn't support these pseudo-elements */
         input[type="range"] {
             -webkit-appearance: none;
             appearance: none;
-            background: transparent;
-            cursor: pointer;
+            @apply bg-transparent cursor-pointer;
         }
         input[type="range"]::-webkit-slider-track {
-            background: #e5e7eb;
-            height: 4px;
-            border-radius: 2px;
+            @apply bg-gray-200 h-1 rounded;
         }
         input[type="range"]::-moz-range-track {
-            background: #e5e7eb;
-            height: 4px;
-            border-radius: 2px;
+            @apply bg-gray-200 h-1 rounded;
         }
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            appearance: none;
-            background: #f59e0b;
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: all 0.15s;
+            @apply w-4 h-4 bg-amber-500 rounded-full border-2 border-white shadow-sm transition-all cursor-pointer hover:scale-110 hover:bg-amber-600;
         }
         input[type="range"]::-moz-range-thumb {
-            background: #f59e0b;
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: all 0.15s;
+            @apply w-4 h-4 bg-amber-500 rounded-full border-2 border-white shadow-sm transition-all cursor-pointer hover:scale-110 hover:bg-amber-600;
         }
-        input[type="range"]:hover::-webkit-slider-thumb {
-            transform: scale(1.1);
-            background: #d97706;
-        }
-        input[type="range"]:hover::-moz-range-thumb {
-            transform: scale(1.1);
-            background: #d97706;
-        }
-        
-        /* Clean scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f9fafb; }
-        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
     </style>
     
     <!-- Enhanced Structured Data -->
@@ -248,7 +210,7 @@
             </section>
             
             <!-- Test Mode Sidebar -->
-            <section id="test-sidebar" class="test-mode-hidden bg-white rounded-lg p-5 overflow-y-auto border border-gray-200 w-full md:w-auto mb-4 md:mb-0 flex-shrink-0" aria-label="Interactive test controls">
+            <section id="test-sidebar" class="hidden bg-white rounded-lg p-5 overflow-y-auto border border-gray-200 w-full md:w-auto mb-4 md:mb-0 flex-shrink-0" aria-label="Interactive test controls">
                 <div class="mb-6">
                     <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Interactive Test</h3>
                     <div class="space-y-4">
@@ -283,7 +245,7 @@
                 </div>
                 
                 <!-- Results container -->
-                <div id="car-summary" class="block" style="display: none;">
+                <div id="car-summary" class="block hidden">
                     <h3 class="text-center mb-4 text-base font-semibold">☀️ Sun Exposure Summary</h3>
                     <div class="flex justify-center items-center px-4 py-6">
                         <div class="relative">
@@ -329,7 +291,7 @@
                 </div>
                 
                 <!-- Test Mode Results -->
-                <div id="test-results" class="test-mode-hidden">
+                <div id="test-results" class="hidden">
                     <h3 class="text-center mb-4 text-base font-semibold">🧪 Test Results</h3>
                     <div id="test-visualization-container"></div>
                 </div>
