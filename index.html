@@ -47,6 +47,9 @@
         .car-marker { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); transition: transform 0.2s ease; }
         .car-marker:hover { transform: scale(1.1); }
         .leaflet-popup-content h4 { margin-top: 0; margin-bottom: 8px; }
+        .compass-circle { background: linear-gradient(45deg, #f8f9fa 25%, #fff 25%, #fff 50%, #f8f9fa 50%, #f8f9fa 75%, #fff 75%, #fff); background-size: 20px 20px; }
+        .sun-glow { background: radial-gradient(circle, #FFD700 0%, #FFA500 100%); box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
+        .test-mode-hidden { display: none !important; }
     </style>
     
     <!-- Structured Data -->
@@ -92,9 +95,17 @@
             <p class="text-muted-foreground text-xs md:text-sm">Discover which side of your car gets hit by sun during your journey</p>
         </header>
         
+        <!-- Mode Toggle -->
+        <div class="px-4 py-2 border-b bg-secondary/20">
+            <div class="flex justify-center gap-2">
+                <button id="route-mode-btn" class="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-lg transition-colors" onclick="switchMode('route')">🚗 Route Planner</button>
+                <button id="test-mode-btn" class="px-4 py-2 text-sm font-medium bg-secondary text-secondary-foreground rounded-lg transition-colors hover:bg-secondary/80" onclick="switchMode('test')">🧪 Test Mode</button>
+            </div>
+        </div>
+        
         <main id="main-content" class="flex-1 flex flex-col md:grid md:grid-cols-[280px_1fr] lg:grid-cols-[280px_1fr_280px] gap-4 h-auto md:h-[600px] p-4" role="main">
-            <!-- Sidebar with controls -->
-            <section class="bg-background rounded-lg p-4 overflow-y-auto border w-full md:w-auto mb-4 md:mb-0 flex-shrink-0" aria-label="Route and sun tracking controls">
+            <!-- Route Mode Sidebar -->
+            <section id="route-sidebar" class="bg-background rounded-lg p-4 overflow-y-auto border w-full md:w-auto mb-4 md:mb-0 flex-shrink-0" aria-label="Route and sun tracking controls">
                 <div class="mb-4">
                     <h3 class="text-base font-semibold mb-3 flex items-center gap-2"><span class="text-sm">📍</span> Route</h3>
                     <div class="space-y-3">
@@ -141,8 +152,30 @@
                 <div id="status" class="absolute bottom-2 left-2 right-2 p-2 text-center rounded-md text-xs bg-background/95 backdrop-blur-sm border z-[1000] opacity-0 transition-opacity duration-300 [&:not(:empty)]:opacity-100" role="status" aria-live="polite"></div>
             </section>
             
+            <!-- Test Mode Sidebar -->
+            <section id="test-sidebar" class="test-mode-hidden bg-background rounded-lg p-4 overflow-y-auto border w-full md:w-auto mb-4 md:mb-0 flex-shrink-0" aria-label="Interactive test controls">
+                <div class="mb-4">
+                    <h3 class="text-base font-semibold mb-3 flex items-center gap-2"><span class="text-sm">🎮</span> Interactive Test</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="car-bearing-slider" class="block text-xs font-medium mb-2">🚗 Car: <span id="car-bearing-value" class="font-semibold">0°</span> (<span id="car-bearing-compass" class="font-semibold">N</span>)</label>
+                            <input type="range" id="car-bearing-slider" min="0" max="360" value="0" step="5" class="w-full" oninput="updateInteractiveTest()">
+                        </div>
+                        <div>
+                            <label for="sun-azimuth-slider" class="block text-xs font-medium mb-2">☀️ Sun: <span id="sun-azimuth-value" class="font-semibold">0°</span> (<span id="sun-azimuth-compass" class="font-semibold">N</span>)</label>
+                            <input type="range" id="sun-azimuth-slider" min="0" max="360" value="0" step="5" class="w-full" oninput="updateInteractiveTest()">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h3 class="text-base font-semibold mb-3 flex items-center gap-2"><span class="text-sm">📋</span> Test Cases</h3>
+                    <div class="grid grid-cols-2 gap-2" id="test-case-buttons"></div>
+                </div>
+            </section>
+            
             <!-- Results panel -->
-            <aside class="bg-background rounded-lg p-4 overflow-y-auto border w-full md:w-auto md:col-span-2 lg:col-span-1 min-h-[300px] flex-shrink-0" aria-label="Sun exposure analysis results">
+            <aside id="results-panel" class="bg-background rounded-lg p-4 overflow-y-auto border w-full md:w-auto md:col-span-2 lg:col-span-1 min-h-[300px] flex-shrink-0" aria-label="Sun exposure analysis results">
                 <!-- Placeholder when no results -->
                 <div id="results-placeholder" class="flex items-center justify-center h-full p-4">
                     <div class="text-center max-w-sm">
@@ -210,6 +243,12 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                
+                <!-- Test Mode Results -->
+                <div id="test-results" class="test-mode-hidden">
+                    <h3 class="text-center mb-4 text-base font-semibold">🧪 Test Results</h3>
+                    <div id="test-visualization-container"></div>
                 </div>
             </aside>
         </main>
@@ -311,7 +350,7 @@
                                         <h3 class="text-sm font-semibold mb-1 flex items-center gap-2">🧪 Interactive Calculator</h3>
                                         <p class="text-xs text-muted-foreground">Test sun exposure calculation with adjustable positions</p>
                                     </div>
-                                    <a href="test_visualization.html" class="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-2 rounded-lg border border-blue-300 transition-colors font-medium no-underline" target="_blank">Try →</a>
+                                    <button onclick="switchMode('test')" class="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-2 rounded-lg border border-blue-300 transition-colors font-medium">Try →</button>
                                 </div>
                             </div>
                         </div>
@@ -330,7 +369,7 @@
             <div class="text-center text-xs md:text-sm text-muted-foreground">
                 <p>&copy; 2025 Sun Exposure Route Planner | 
                     <a href="https://github.com/gaborvecsei/Car-Route-Visualizer" class="text-primary no-underline hover:underline">GitHub</a> | 
-                    <a href="test_visualization.html" class="text-primary no-underline hover:underline" target="_blank">🧪 Test Calculator</a> |
+                    <button onclick="switchMode('test')" class="text-primary no-underline hover:underline bg-transparent border-0 cursor-pointer font-inherit text-inherit">🧪 Test Calculator</button> |
                     <span class="italic">A fun pet project for entertainment only</span>
                 </p>
             </div>
@@ -341,5 +380,170 @@
     <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
     <script src="config.js?v=3"></script>
     <script src="script.js?v=3"></script>
+    <script>
+        // Test Mode Functionality
+        let currentMode = 'route';
+        
+        const testCases = [
+            { name: "Front", carBearing: 0, sunAzimuth: 0 },
+            { name: "Back", carBearing: 0, sunAzimuth: 180 },
+            { name: "Right", carBearing: 0, sunAzimuth: 90 },
+            { name: "Left", carBearing: 0, sunAzimuth: 270 },
+            { name: "Front-right", carBearing: 0, sunAzimuth: 45 },
+            { name: "Front-left", carBearing: 0, sunAzimuth: 315 },
+        ];
+        
+        const switchMode = (mode) => {
+            currentMode = mode;
+            const routeElements = ['route-sidebar', 'results-placeholder', 'car-summary'];
+            const testElements = ['test-sidebar', 'test-results'];
+            const isRoute = mode === 'route';
+            
+            // Toggle element visibility
+            [...routeElements, ...testElements].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const shouldShow = isRoute ? routeElements.includes(id) : testElements.includes(id);
+                el.classList.toggle('test-mode-hidden', !shouldShow);
+            });
+            
+            // Update button styles
+            const routeBtn = document.getElementById('route-mode-btn');
+            const testBtn = document.getElementById('test-mode-btn');
+            const primaryClasses = ['bg-primary', 'text-primary-foreground'];
+            const secondaryClasses = ['bg-secondary', 'text-secondary-foreground'];
+            
+            if (isRoute) {
+                routeBtn.classList.add(...primaryClasses);
+                routeBtn.classList.remove(...secondaryClasses);
+                testBtn.classList.remove(...primaryClasses);
+                testBtn.classList.add(...secondaryClasses);
+            } else {
+                testBtn.classList.add(...primaryClasses);
+                testBtn.classList.remove(...secondaryClasses);
+                routeBtn.classList.remove(...primaryClasses);
+                routeBtn.classList.add(...secondaryClasses);
+                initTestMode();
+            }
+        };
+        
+        const createTestVisualization = (testCase) => {
+            const result = calculateCarSideExposures({ azimuth: testCase.sunAzimuth, elevation: 45 }, testCase.carBearing);
+            const sunAngle = (testCase.sunAzimuth - 90) * Math.PI / 180;
+            const sunX = 50 + Math.cos(sunAngle) * 40;
+            const sunY = 50 + Math.sin(sunAngle) * 40;
+            
+            const exposureBar = (label, value, color) => 
+                `<div class="flex items-center my-1">
+                    <span class="w-12 text-xs font-medium">${label}:</span>
+                    <div class="h-4 rounded ml-2 flex items-center justify-center text-xs font-medium text-white min-w-10" 
+                         style="width: ${Math.max(40, value * 120)}px; background: ${color}; text-shadow: 1px 1px 1px rgba(0,0,0,0.5);">
+                        ${(value * 100).toFixed(1)}%
+                    </div>
+                </div>`;
+            
+            return `
+                <div class="mb-4">
+                    <div class="text-sm font-semibold mb-3">${testCase.name}</div>
+                    <div class="flex gap-6 items-center flex-wrap">
+                        <div class="relative w-48 h-48 flex-shrink-0">
+                            <div class="w-full h-full border-2 border-gray-300 rounded-full compass-circle">
+                                <div class="absolute inset-2 text-xs font-medium text-gray-600">
+                                    <div class="absolute top-0 left-1/2 -translate-x-1/2">N</div>
+                                    <div class="absolute top-1/2 right-0 -translate-y-1/2">E</div>
+                                    <div class="absolute bottom-0 left-1/2 -translate-x-1/2">S</div>
+                                    <div class="absolute top-1/2 left-0 -translate-y-1/2">W</div>
+                                </div>
+                                
+                                <svg class="absolute inset-0 w-full h-full z-10">
+                                    <line x1="50%" y1="50%" x2="${sunX}%" y2="${sunY}%" stroke="#FFD700" stroke-width="2" opacity="0.8" stroke-dasharray="3,3"/>
+                                </svg>
+                                
+                                <div class="absolute top-1/2 left-1/2 w-8 h-12 z-20" style="transform: translate(-50%, -50%) rotate(${testCase.carBearing}deg);">
+                                    <svg width="32" height="48" viewBox="0 0 32 48" class="drop-shadow-sm">
+                                        <rect x="6" y="4" width="20" height="40" rx="5" fill="#3b82f6" stroke="#1d4ed8"/>
+                                        <rect x="8" y="6" width="16" height="6" rx="2" fill="#60a5fa"/>
+                                        <rect x="8" y="36" width="16" height="6" rx="2" fill="#60a5fa"/>
+                                        <circle cx="12" cy="2" r="1.5" fill="#fbbf24"/>
+                                        <circle cx="20" cy="2" r="1.5" fill="#fbbf24"/>
+                                        <text x="16" y="-1" text-anchor="middle" font-size="6" fill="#374151">F</text>
+                                        <text x="29" y="26" text-anchor="middle" font-size="6" fill="#374151">R</text>
+                                        <text x="16" y="47" text-anchor="middle" font-size="6" fill="#374151">B</text>
+                                        <text x="3" y="26" text-anchor="middle" font-size="6" fill="#374151">L</text>
+                                    </svg>
+                                </div>
+                                
+                                <div class="absolute w-6 h-6 rounded-full flex items-center justify-center text-sm z-20 sun-glow" 
+                                     style="left: ${sunX}%; top: ${sunY}%; transform: translate(-50%, -50%);">☀</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-secondary/30 rounded-md p-3 min-w-48 flex-1">
+                            <h4 class="text-sm font-semibold mb-2">Exposure Results</h4>
+                            ${exposureBar('Front', result.front, 'linear-gradient(to right, #ef4444, #f87171)')}
+                            ${exposureBar('Back', result.back, 'linear-gradient(to right, #22c55e, #4ade80)')}
+                            ${exposureBar('Left', result.left, 'linear-gradient(to right, #3b82f6, #60a5fa)')}
+                            ${exposureBar('Right', result.right, 'linear-gradient(to right, #ec4899, #f472b6)')}
+                            <div class="text-xs text-muted-foreground mt-2 space-y-1">
+                                <div><strong>Car:</strong> ${getCompassDirection(testCase.carBearing)} (${testCase.carBearing}°)</div>
+                                <div><strong>Sun:</strong> ${getCompassDirection(testCase.sunAzimuth)} (${testCase.sunAzimuth}°)</div>
+                                <div><strong>Total:</strong> ${((result.front + result.back + result.left + result.right) * 100).toFixed(1)}%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+        
+        const updateInteractiveTest = () => {
+            const carBearing = parseInt(document.getElementById('car-bearing-slider').value);
+            const sunAzimuth = parseInt(document.getElementById('sun-azimuth-slider').value);
+            
+            // Update display values
+            const updates = [
+                ['car-bearing-value', carBearing + '°'],
+                ['sun-azimuth-value', sunAzimuth + '°'],
+                ['car-bearing-compass', getCompassDirection(carBearing)],
+                ['sun-azimuth-compass', getCompassDirection(sunAzimuth)]
+            ];
+            updates.forEach(([id, value]) => {
+                document.getElementById(id).textContent = value;
+            });
+            
+            const container = document.getElementById('test-visualization-container');
+            container.innerHTML = createTestVisualization({ name: "Interactive Test", carBearing, sunAzimuth });
+        };
+        
+        const runTestCase = (testCase) => {
+            document.getElementById('car-bearing-slider').value = testCase.carBearing;
+            document.getElementById('sun-azimuth-slider').value = testCase.sunAzimuth;
+            updateInteractiveTest();
+        };
+        
+        const initTestMode = () => {
+            // Create test case buttons
+            const buttonsContainer = document.getElementById('test-case-buttons');
+            if (buttonsContainer && buttonsContainer.children.length === 0) {
+                testCases.forEach(testCase => {
+                    const button = document.createElement('button');
+                    button.className = 'px-3 py-2 text-xs bg-secondary hover:bg-secondary/80 rounded-md border transition-colors font-medium';
+                    button.textContent = testCase.name;
+                    button.onclick = () => runTestCase(testCase);
+                    buttonsContainer.appendChild(button);
+                });
+            }
+            
+            // Initialize interactive test
+            updateInteractiveTest();
+        };
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up mode toggle
+            if (window.location.hash === '#test') {
+                switchMode('test');
+            }
+        });
+    </script>
 </body>
 </html>

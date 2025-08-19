@@ -1,21 +1,24 @@
-// Global variables
-let map, routeLayer = null, routeData = null;
-let sunMarkers = [], currentSunPositions = [], carVisualizationMarkers = [];
-let isAnalyzing = false, loadingTimeout = null;
-
-// DOM cache for frequent element access
-const DOM = {
-    visualizeBtn: () => document.getElementById('visualize-btn'),
-    routeFrom: () => document.getElementById('route-from'),
-    routeTo: () => document.getElementById('route-to'),
-    tripDate: () => document.getElementById('trip-date'),
-    tripTime: () => document.getElementById('trip-time'),
-    analysisPoints: () => document.getElementById('analysis-points'),
-    status: () => document.getElementById('status'),
-    routeDataContent: () => document.getElementById('route-data-content'),
-    resultsPlaceholder: () => document.getElementById('results-placeholder'),
-    carSummary: () => document.getElementById('car-summary')
+// Constants from config.js
+const CONFIG = {
+    DEFAULT_CENTER: [40.7128, -74.0060],
+    DEFAULT_ZOOM: 7,
+    ROUTE_COLORS: { ROUTE1: '#0000FF' },
+    NOMINATIM_URL: 'https://nominatim.openstreetmap.org/search'
 };
+
+// Single State Object Pattern - unified state management
+const AppState = {
+    route: { data: null, layer: null },
+    sun: { positions: [], markers: [] },
+    car: { markers: [] },
+    ui: { loading: false, status: '', timeout: null },
+    get isReady() { return this.route.data !== null; }
+};
+
+// DOM element cache - populated once on initialization  
+const DOM = {};
+
+let map;
 
 // Utility functions
 const logError = (error, context = '') => {
@@ -26,27 +29,27 @@ const logError = (error, context = '') => {
 };
 
 const setLoadingState = (isLoading, message = '') => {
-    const button = DOM.visualizeBtn();
+    const button = DOM.visualizeBtn;
     
     if (isLoading) {
         button.disabled = true;
         button.classList.add('loading');
         button.innerHTML = `<span class="button-icon">⏳</span> ${message || 'Analyzing...'}`;
-        isAnalyzing = true;
+        AppState.ui.loading = true;
         
-        if (loadingTimeout) clearTimeout(loadingTimeout);
-        loadingTimeout = setTimeout(() => {
-            if (isAnalyzing) showStatus('Analysis is taking longer than expected. Please wait...', 'info');
+        if (AppState.ui.timeout) clearTimeout(AppState.ui.timeout);
+        AppState.ui.timeout = setTimeout(() => {
+            if (AppState.ui.loading) showStatus('Analysis is taking longer than expected. Please wait...', 'info');
         }, 15000);
     } else {
         button.disabled = false;
         button.classList.remove('loading');
         button.innerHTML = `<span class="button-icon">☀️</span> Analyze Sun Exposure`;
-        isAnalyzing = false;
+        AppState.ui.loading = false;
         
-        if (loadingTimeout) {
-            clearTimeout(loadingTimeout);
-            loadingTimeout = null;
+        if (AppState.ui.timeout) {
+            clearTimeout(AppState.ui.timeout);
+            AppState.ui.timeout = null;
         }
     }
 };
@@ -63,11 +66,11 @@ const handleUrlParameters = () => {
     };
     
     const elements = {
-        from: DOM.routeFrom(),
-        to: DOM.routeTo(),
-        date: DOM.tripDate(),
-        utctime: DOM.tripTime(),
-        points: DOM.analysisPoints()
+        from: DOM.routeFrom,
+        to: DOM.routeTo,
+        date: DOM.tripDate,
+        utctime: DOM.tripTime,
+        points: DOM.analysisPoints
     };
     
     // Set values for existing parameters
@@ -94,144 +97,177 @@ const handleUrlParameters = () => {
 
 const updateUrlWithParameters = (routeFrom, routeTo) => {
     const params = new URLSearchParams();
-    [
+    const paramData = [
         ['from', routeFrom], 
         ['to', routeTo],
-        ['date', DOM.tripDate().value],
-        ['utctime', DOM.tripTime().value],
-        ['points', DOM.analysisPoints().value]
-    ].forEach(([key, value]) => {
+        ['date', DOM.tripDate.value],
+        ['utctime', DOM.tripTime.value],
+        ['points', DOM.analysisPoints.value]
+    ];
+    
+    paramData.forEach(([key, value]) => {
         if (value) params.set(key, key.includes('from') || key.includes('to') ? encodeURIComponent(value) : value);
     });
     
-    const newUrl = window.location.pathname + '?' + params;
-    window.history.pushState({ path: newUrl }, '', newUrl);
+    window.history.pushState({ path: window.location.pathname + '?' + params }, '', window.location.pathname + '?' + params);
 };
 
 const initMap = () => {
+    // Populate DOM cache once
+    DOM.visualizeBtn = document.getElementById('visualize-btn');
+    DOM.routeFrom = document.getElementById('route-from');
+    DOM.routeTo = document.getElementById('route-to');
+    DOM.tripDate = document.getElementById('trip-date');
+    DOM.tripTime = document.getElementById('trip-time');
+    DOM.analysisPoints = document.getElementById('analysis-points');
+    DOM.status = document.getElementById('status');
+    DOM.routeDataContent = document.getElementById('route-data-content');
+    DOM.resultsPlaceholder = document.getElementById('results-placeholder');
+    DOM.carSummary = document.getElementById('car-summary');
+    
     map = L.map('map').setView(CONFIG.DEFAULT_CENTER, CONFIG.DEFAULT_ZOOM);
     
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
     
-    // Event listeners
-    DOM.visualizeBtn().addEventListener('click', visualizeRoutes);
-    [DOM.routeFrom(), DOM.routeTo()].forEach(input => 
+    // Event delegation pattern - single handler for multiple events
+    document.addEventListener('click', e => {
+        const handlers = {
+            'visualize-btn': visualizeRoutes,
+            'analysis-points-toggle': toggleAnalysisPoints
+        };
+        handlers[e.target.id]?.();
+    });
+    
+    // Keypress events for inputs
+    [DOM.routeFrom, DOM.routeTo].forEach(input => 
         input.addEventListener('keypress', e => e.key === 'Enter' && visualizeRoutes())
     );
     
     // Set defaults
     const today = new Date();
-    DOM.tripDate().value = today.toISOString().split('T')[0];
-    DOM.tripTime().value = '08:00';
+    DOM.tripDate.value = today.toISOString().split('T')[0];
+    DOM.tripTime.value = '08:00';
     
     handleUrlParameters();
     showStatus('Map initialized. Enter your route and click "Analyze Sun Exposure".', 'info');
 };
 
 const showStatus = (message, type = 'info') => {
-    const statusDiv = DOM.status();
-    statusDiv.textContent = message;
-    statusDiv.className = `status-message ${type}`;
+    DOM.status.textContent = message;
+    DOM.status.className = `status-message ${type}`;
 };
 
 const validateInputs = () => {
-    const routeFrom = DOM.routeFrom().value.trim();
-    const routeTo = DOM.routeTo().value.trim();
+    const routeFrom = DOM.routeFrom.value.trim();
+    const routeTo = DOM.routeTo.value.trim();
+    const tripDate = DOM.tripDate.value;
+    const tripTime = DOM.tripTime.value;
     
     if (!routeFrom || !routeTo) {
         showStatus('Please fill in both route fields.', 'error');
-        return false;
+        return null;
     }
     
-    return { routeFrom, routeTo };
+    if (!tripDate || !tripTime) {
+        showStatus('Please select both date and time for the trip start.', 'error');
+        return null;
+    }
+    
+    if (!AppState.route.data) {
+        showStatus('Please calculate route first by clicking "Visualize Route".', 'error');
+        return null;
+    }
+    
+    return { 
+        routeFrom, 
+        routeTo, 
+        startDateTime: new Date(`${tripDate}T${tripTime}:00.000Z`)
+    };
 };
 
-// Geocoding and routing functions
+// Consolidated API helper functions
+const apiRequest = async (url, errorContext) => {
+    try {
+        const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+        return await response.json();
+    } catch (error) {
+        throw new Error(`${errorContext} failed: ${error.message}`);
+    }
+};
+
 const geocodeLocation = async (address) => {
     const url = `${CONFIG.NOMINATIM_URL}?format=json&q=${encodeURIComponent(address)}&limit=1`;
+    const data = await apiRequest(url, `Geocoding "${address}"`);
     
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        if (data.length === 0) {
-            throw new Error(`Location not found: ${address}`);
-        }
-        
-        return {
-            lat: parseFloat(data[0].lat),
-            lng: parseFloat(data[0].lon),
-            name: data[0].display_name
-        };
-    } catch (error) {
-        throw new Error(`Geocoding failed for "${address}": ${error.message}`);
-    }
+    if (data.length === 0) throw new Error(`Location not found: ${address}`);
+    
+    return {
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon),
+        name: data[0].display_name
+    };
 };
 
 const calculateRoute = async (fromLocation, toLocation) => {
     const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${fromLocation.lng},${fromLocation.lat};${toLocation.lng},${toLocation.lat}?overview=full&geometries=geojson&steps=true`;
+    const data = await apiRequest(osrmUrl, 'Route calculation');
     
-    const response = await fetch(osrmUrl, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' }
-    });
-    
-    if (!response.ok) {
-        throw new Error(`OSRM API returned ${response.status}: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    
-    if (data.code !== 'Ok') {
-        throw new Error(`OSRM API error: ${data.message || 'Unknown error'}`);
-    }
+    if (data.code !== 'Ok') throw new Error(`OSRM API error: ${data.message || 'Unknown error'}`);
     
     if (data.routes?.[0]?.geometry) {
         const route = data.routes[0];
         const coordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
-        
         console.log('Successfully got route from OSRM');
-        return {
-            path: coordinates,
-            distance: route.distance,
-            duration: route.duration
-        };
+        return { path: coordinates, distance: route.distance, duration: route.duration };
     }
     
     throw new Error('No valid route found in OSRM response');
 };
 
 const visualizeRoutes = async () => {
-    const inputs = validateInputs();
-    if (!inputs) return;
+    const routeFrom = DOM.routeFrom.value.trim();
+    const routeTo = DOM.routeTo.value.trim();
     
-    const button = DOM.visualizeBtn();
+    if (!routeFrom || !routeTo) {
+        showStatus('Please fill in both route fields.', 'error');
+        return;
+    }
+    
+    const button = DOM.visualizeBtn;
     button.disabled = true;
-    showStatus('Geocoding locations...', 'info');
     
     try {
+        showStatus('Geocoding locations...', 'info');
         clearPreviousRoutes();
         
-        const [routeFrom, routeTo] = await Promise.all([
-            geocodeLocation(inputs.routeFrom),
-            geocodeLocation(inputs.routeTo)
+        const [fromLocation, toLocation] = await Promise.all([
+            geocodeLocation(routeFrom),
+            geocodeLocation(routeTo)
         ]);
         
         showStatus('Calculating route...', 'info');
-        const routeResult = await calculateRoute(routeFrom, routeTo);
-        routeData = routeResult;
+        AppState.route.data = await calculateRoute(fromLocation, toLocation);
         
-        displayRoute(routeData, CONFIG.ROUTE_COLORS.ROUTE1, 'Route');
-        fitMapToRoutes([routeData]);
-        updateRouteDataSection(routeData);
+        displayRoute(AppState.route.data, CONFIG.ROUTE_COLORS.ROUTE1, 'Route');
+        fitMapToRoutes([AppState.route.data]);
+        updateRouteDataSection(AppState.route.data);
         
-        const routeTime = formatDuration(routeData.duration);
-        const routeDistance = (routeData.distance / 1000).toFixed(1);
+        // Format duration inline
+        const formatDuration = (seconds) => {
+            const totalMinutes = Math.round(seconds / 60);
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+        };
+        
+        const routeDistance = (AppState.route.data.distance / 1000).toFixed(1);
+        const routeTime = formatDuration(AppState.route.data.duration);
         
         showStatus(`Route calculated successfully! 📍 Distance: ${routeDistance}km | ⏱️ Time: ${routeTime}`, 'success');
-        updateUrlWithParameters(inputs.routeFrom, inputs.routeTo);
+        updateUrlWithParameters(routeFrom, routeTo);
         
         // Auto-trigger sun calculations
         setTimeout(() => {
@@ -240,6 +276,7 @@ const visualizeRoutes = async () => {
         }, 500);
         
     } catch (error) {
+        logError(error, 'visualizeRoutes');
         showStatus(error.message, 'error');
     } finally {
         button.disabled = false;
@@ -247,44 +284,54 @@ const visualizeRoutes = async () => {
 };
 
 const clearPreviousRoutes = () => {
-    if (routeLayer) {
-        map.removeLayer(routeLayer);
-        routeLayer = null;
+    if (AppState.route.layer) {
+        map.removeLayer(AppState.route.layer);
+        AppState.route.layer = null;
     }
     clearSunMarkers();
     clearCarVisualization();
-    currentSunPositions = [];
-    routeData = null;
+    AppState.sun.positions = [];
+    AppState.route.data = null;
     
-    DOM.routeDataContent().innerHTML = '<p class="text-muted-foreground italic text-center text-lg">Calculate a route above to see the API data being used for analysis...</p>';
+    DOM.routeDataContent.innerHTML = '<p class="text-muted-foreground italic text-center text-lg">Calculate a route above to see the API data being used for analysis...</p>';
 };
 
+// Template utilities
+const formatTime = date => date.toLocaleTimeString('en-US', { 
+    hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'UTC' 
+}) + ' UTC';
+
+const createCard = (icon, title, value, subtitle = '') => `
+    <div class="p-4 bg-secondary/50 rounded-lg border">
+        <div class="flex items-center gap-3 mb-2">
+            <span class="text-xl">${icon}</span>
+            <span class="font-semibold">${title}</span>
+        </div>
+        <p class="text-muted-foreground">${value}</p>
+        ${subtitle ? `<p class="text-xs text-muted-foreground mt-1">${subtitle}</p>` : ''}
+    </div>`;
+
 const updateRouteDataSection = (routeData) => {
-    const routeTime = formatDuration(routeData.duration);
-    const routeDistance = (routeData.distance / 1000).toFixed(1);
-    const numAnalysisPoints = parseInt(DOM.analysisPoints().value) || 12;
+    const formatDuration = (seconds) => {
+        const totalMinutes = Math.round(seconds / 60);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+    };
     
-    const startDateTime = createUTCDateTime(DOM.tripDate().value, DOM.tripTime().value);
+    const routeDistance = (routeData.distance / 1000).toFixed(1);
+    const routeTime = formatDuration(routeData.duration);
+    const numAnalysisPoints = parseInt(DOM.analysisPoints.value) || 12;
+    
+    const startDateTime = new Date(`${DOM.tripDate.value}T${DOM.tripTime.value}:00.000Z`);
     const arrivalDateTime = new Date(startDateTime.getTime() + (routeData.duration * 1000));
     
-    // Helper for creating info cards
-    const createCard = (icon, title, value, subtitle) => `
-        <div class="p-4 bg-secondary/50 rounded-lg border">
-            <div class="flex items-center gap-3 mb-2">
-                <span class="text-xl">${icon}</span>
-                <span class="font-semibold">${title}</span>
-            </div>
-            <p class="text-muted-foreground">${value}</p>
-            ${subtitle ? `<p class="text-xs text-muted-foreground mt-1">${subtitle}</p>` : ''}
-        </div>
-    `;
-    
-    const content = `
+    DOM.routeDataContent.innerHTML = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             ${createCard('📍', 'Distance', `${routeDistance} km`, 'From OpenStreetMap API')}
             ${createCard('⏱️', 'Travel Time', routeTime, 'From routing service')}
-            ${createCard('🚀', 'Start', formatTimeUTC(startDateTime))}
-            ${createCard('🏁', 'Arrival', formatTimeUTC(arrivalDateTime))}
+            ${createCard('🚀', 'Start', formatTime(startDateTime))}
+            ${createCard('🏁', 'Arrival', formatTime(arrivalDateTime))}
         </div>
         
         <div class="mt-6 p-4 bg-accent/50 rounded-lg border">
@@ -317,10 +364,7 @@ const updateRouteDataSection = (routeData) => {
                     </table>
                 </div>
             </div>
-        </div>
-    `;
-    
-    DOM.routeDataContent().innerHTML = content;
+        </div>`;
 };
 
 const generateAnalysisPointsDetails = (routeData, startDateTime, numAnalysisPoints) => {
@@ -331,16 +375,14 @@ const generateAnalysisPointsDetails = (routeData, startDateTime, numAnalysisPoin
         const timeOffsetSeconds = routeProgress * routeData.duration;
         const traveledDistance = (routeProgress * totalDistanceKm).toFixed(1);
         const absoluteTimeAtPosition = new Date(startDateTime.getTime() + (timeOffsetSeconds * 1000));
-        const utcTimeStr = formatTimeUTC(absoluteTimeAtPosition);
         
         return `
             <tr class="border-b hover:bg-secondary/50 transition-colors">
                 <td class="p-3 font-medium">${i + 1}</td>
                 <td class="p-3 text-muted-foreground">${(routeProgress * 100).toFixed(1)}%</td>
                 <td class="p-3 text-muted-foreground">${traveledDistance} km</td>
-                <td class="p-3 text-muted-foreground">${utcTimeStr}</td>
-            </tr>
-        `;
+                <td class="p-3 text-muted-foreground">${formatTime(absoluteTimeAtPosition)}</td>
+            </tr>`;
     }).join('');
 };
 
@@ -353,14 +395,6 @@ const toggleAnalysisPoints = () => {
     toggle.textContent = isHidden ? 'Hide Details' : 'Show Details';
 };
 
-// Formatting utilities
-const formatDuration = (durationInSeconds) => {
-    const totalMinutes = Math.round(durationInSeconds / 60);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-};
-
 const displayRoute = (routeData, color, label) => {
     const layer = L.polyline(routeData.path, {
         color,
@@ -368,7 +402,14 @@ const displayRoute = (routeData, color, label) => {
         opacity: 0.7
     }).addTo(map);
     
-    routeLayer = layer;
+    AppState.route.layer = layer;
+    
+    const formatDuration = (seconds) => {
+        const totalMinutes = Math.round(seconds / 60);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+    };
     
     layer.bindPopup(`
         <strong>${label}</strong><br>
@@ -404,36 +445,10 @@ const getDistance = (point1, point2) => {
     return R * c;
 };
 
-// Date/time utilities
-const createUTCDateTime = (dateStr, timeStr) => new Date(`${dateStr}T${timeStr}:00.000Z`);
-
-const formatTimeUTC = (date) => date.toLocaleTimeString('en-US', { 
-    hour: '2-digit', 
-    minute: '2-digit',
-    hour12: true,
-    timeZone: 'UTC'
-}) + ' UTC';
-
-const validateRouteInputs = () => {
-    const tripDate = DOM.tripDate().value;
-    const tripTime = DOM.tripTime().value;
-    
-    if (!tripDate || !tripTime) {
-        showStatus('Please select both date and time for the trip start.', 'error');
-        return null;
-    }
-    
-    if (!routeData) {
-        showStatus('Please calculate route first by clicking "Visualize Route".', 'error');
-        return null;
-    }
-    
-    return createUTCDateTime(tripDate, tripTime);
-};
 
 const calculateAnalysisPoints = (routePath, startDateTime) => {
-    const numAnalysisPoints = parseInt(DOM.analysisPoints().value) || 12;
-    const totalDurationSeconds = routeData.duration;
+    const numAnalysisPoints = parseInt(DOM.analysisPoints.value) || 12;
+    const totalDurationSeconds = AppState.route.data.duration;
     
     return Array.from({ length: numAnalysisPoints }, (_, i) => {
         const routeProgress = i / (numAnalysisPoints - 1);
@@ -470,16 +485,15 @@ const calculateAnalysisPoints = (routePath, startDateTime) => {
 };
 
 const trackSunPosition = () => {
-    const startDateTime = validateRouteInputs();
-    if (!startDateTime) return;
+    const inputs = validateInputs();
+    if (!inputs) return;
     
     clearSunMarkers();
     showStatus('Calculating sun positions and directions...', 'info');
     setTimeout(() => {
-        const sunPositions = calculateAnalysisPoints(routeData.path, startDateTime);
-        currentSunPositions = sunPositions;
-        visualizeSunPositions(sunPositions);
-        showStatus(`Sun positions calculated for ${sunPositions.length} points along the route.`, 'success');
+        AppState.sun.positions = calculateAnalysisPoints(AppState.route.data.path, inputs.startDateTime);
+        visualizeSunPositions(AppState.sun.positions);
+        showStatus(`Sun positions calculated for ${AppState.sun.positions.length} points along the route.`, 'success');
     }, 500);
 };
 // Car SVG template for visualization
@@ -501,7 +515,6 @@ const createCarSvg = (carBearing) => `
 
 // Create popup content for car markers
 const createCarPopupContent = (sunPos, index) => {
-    const timeString = formatTimeUTC(sunPos.absoluteTime);
     const carBearing = sunPos.carBearing;
     const carSideExposures = sunPos.exposures;
     const relativeSunAngle = sunPos.isDaylight ? (sunPos.sunAzimuth - carBearing + 360) % 360 : 0;
@@ -517,7 +530,7 @@ const createCarPopupContent = (sunPos, index) => {
     
     return `
         <div style="font-family: Arial, sans-serif; max-width: 320px;">
-            <h4 style="margin: 0 0 10px 0; color: #333;">🚗 Stop #${index + 1} - ${timeString}</h4>
+            <h4 style="margin: 0 0 10px 0; color: #333;">🚗 Stop #${index + 1} - ${formatTime(sunPos.absoluteTime)}</h4>
             <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0;">
                 <p style="margin: 2px 0;"><strong>🧭 Car Direction:</strong> ${getCompassDirection(carBearing)} (${carBearing.toFixed(1)}°)</p>
                 <p style="margin: 2px 0;"><strong>📊 Progress:</strong> ${(sunPos.routeProgress * 100).toFixed(1)}% along route</p>
@@ -556,7 +569,7 @@ const visualizeSunPositions = (sunPositions) => {
         }
         
         locationMarker.bindPopup(createCarPopupContent(sunPos, index));
-        sunMarkers.push(locationMarker);
+        AppState.sun.markers.push(locationMarker);
     });
 };
 
@@ -622,19 +635,19 @@ const createSkyDomeVisualization = (sunPos, index) => {
         </div>
     `);
     
-    sunMarkers.push(sunMarker, elevationLine);
+    AppState.sun.markers.push(sunMarker, elevationLine);
 };
 
 const clearSunMarkers = () => {
-    sunMarkers.forEach(marker => map.removeLayer(marker));
-    sunMarkers = [];
+    AppState.sun.markers.forEach(marker => map.removeLayer(marker));
+    AppState.sun.markers = [];
 };
 
 const refreshSunVisualization = () => {
-    if (currentSunPositions.length > 0) {
+    if (AppState.sun.positions.length > 0) {
         clearSunMarkers();
-        visualizeSunPositions(currentSunPositions);
-        console.log(`Refreshed sun visualization with ${currentSunPositions.length} positions at zoom level ${map.getZoom()}`);
+        visualizeSunPositions(AppState.sun.positions);
+        console.log(`Refreshed sun visualization with ${AppState.sun.positions.length} positions at zoom level ${map.getZoom()}`);
     }
 };
 
@@ -661,50 +674,40 @@ const getSkyDescription = (elevation) => {
     return 'Nearly overhead';
 };
 
-// Sun color calculation utilities - consolidated for efficiency
-const sunColorData = [
-    { min: 70, line: '#FF0080', marker: { colors: ['#FF0080', '#FF4500', '#FF6B00'], border: '#FF0080', rgba: '255, 0, 128' }},
-    { min: 50, line: { red: 255, green: [32, 0], blue: [128, 0] }, marker: { colors: ['#FF4500', '#FF6B00', '#FF8C00'], border: '#FF4500', rgba: '255, 69, 0' }},
-    { min: 30, line: { red: 255, green: [155, 100], blue: 0 }, marker: { colors: ['#FF8C00', '#FFA500', '#FFB84D'], border: '#FF8C00', rgba: '255, 140, 0' }},
-    { min: 10, line: { red: 255, green: [255, 165], blue: 0 }, marker: { colors: ['#FFA500', '#FFD700', '#FFEB99'], border: '#FFA500', rgba: '255, 165, 0' }},
-    { min: 0, line: '#FFD700', marker: { colors: ['#FFD700', '#FFEB99', '#FFF8DC'], border: '#FFD700', rgba: '255, 215, 0' }}
-];
-
+// Simplified sun color calculations
 const getSunLineColor = (elevation) => {
-    for (const data of sunColorData) {
-        if (elevation >= data.min) {
-            if (typeof data.line === 'string') return data.line;
-            const { red, green, blue } = data.line;
-            const factor = (elevation - data.min) / 20;
-            const g = Math.round(green[1] + (green[0] - green[1]) * factor);
-            const b = Array.isArray(blue) ? Math.round(blue[1] + (blue[0] - blue[1]) * factor) : blue;
-            return `rgb(${red}, ${g}, ${b})`;
-        }
-    }
+    if (elevation >= 70) return '#FF0080';
+    if (elevation >= 50) return '#FF4500';
+    if (elevation >= 30) return '#FF8C00';
+    if (elevation >= 10) return '#FFA500';
     return '#FFD700';
 };
 
 const getSunMarkerColors = (elevation) => {
-    for (const data of sunColorData) {
-        if (elevation >= data.min) {
-            const { colors, border, rgba } = data.marker;
-            return {
-                background: `radial-gradient(circle, ${colors[0]} 0%, ${colors[1]} 70%, ${colors[2]} 100%)`,
-                border,
-                shadow: `rgba(${rgba}, 0.8)`
-            };
+    const colorMap = {
+        70: { bg: 'radial-gradient(circle, #FF0080 0%, #FF4500 70%, #FF6B00 100%)', border: '#FF0080', shadow: 'rgba(255, 0, 128, 0.8)' },
+        50: { bg: 'radial-gradient(circle, #FF4500 0%, #FF6B00 70%, #FF8C00 100%)', border: '#FF4500', shadow: 'rgba(255, 69, 0, 0.8)' },
+        30: { bg: 'radial-gradient(circle, #FF8C00 0%, #FFA500 70%, #FFB84D 100%)', border: '#FF8C00', shadow: 'rgba(255, 140, 0, 0.8)' },
+        10: { bg: 'radial-gradient(circle, #FFA500 0%, #FFD700 70%, #FFEB99 100%)', border: '#FFA500', shadow: 'rgba(255, 165, 0, 0.8)' },
+        0: { bg: 'radial-gradient(circle, #FFD700 0%, #FFEB99 70%, #FFF8DC 100%)', border: '#FFD700', shadow: 'rgba(255, 215, 0, 0.8)' }
+    };
+    
+    for (const [threshold, colors] of Object.entries(colorMap).map(([k, v]) => [parseInt(k), v])) {
+        if (elevation >= threshold) {
+            return { background: colors.bg, border: colors.border, shadow: colors.shadow };
         }
     }
+    
     return { background: '#FFD700', border: '#FFD700', shadow: 'rgba(255, 215, 0, 0.8)' };
 };
 
 const showCarSunExposure = () => {
-    const startDateTime = validateRouteInputs();
-    if (!startDateTime) return;
+    const inputs = validateInputs();
+    if (!inputs) return;
     
     showStatus('Calculating car sun exposure summary...', 'info');
     setTimeout(() => {
-        updateSummaryVisualization(calculateAnalysisPoints(routeData.path, startDateTime));
+        updateSummaryVisualization(calculateAnalysisPoints(AppState.route.data.path, inputs.startDateTime));
         showStatus(`Car sun exposure summary updated.`, 'success');
     }, 500);
 };
@@ -744,28 +747,17 @@ const calculateCarSideExposures = (sunPosition, carBearing) => {
         : { front: 0, back: 0, left: 0, right: 0 };
 };
 
-// Car exposure visualization utilities
-const updateCarSideColor = (elementId, exposureLevel) => {
-    const labelMapping = {
-        'summary-front': 'front-percentage',
-        'summary-back': 'back-percentage', 
-        'summary-left': 'left-percentage',
-        'summary-right': 'right-percentage'
-    };
-    
-    const percentageElementId = labelMapping[elementId];
-    const percentageElement = document.getElementById(percentageElementId);
+// Consolidated car exposure visualization
+const updateCarSideColor = (side, exposureLevel) => {
+    const percentageElement = document.getElementById(`${side}-percentage`);
     const labelContainer = percentageElement?.closest('.bg-background');
     
     if (!labelContainer) return;
     
     const yellowIntensity = Math.round(exposureLevel * 255);
-    const bgColor = `rgb(255, 255, ${255 - yellowIntensity})`;
-    const textColor = yellowIntensity > 127 ? '#000000' : '#666666';
-    
     Object.assign(labelContainer.style, {
-        backgroundColor: bgColor,
-        color: textColor,
+        backgroundColor: `rgb(255, 255, ${255 - yellowIntensity})`,
+        color: yellowIntensity > 127 ? '#000000' : '#666666',
         borderColor: yellowIntensity > 50 ? '#d4a574' : 'hsl(214.3 31.8% 91.4%)'
     });
 };
@@ -776,44 +768,43 @@ const updateSummaryVisualization = (carExposureData) => {
     
     if (daylightData.length === 0) {
         sides.forEach(side => {
-            updateCarSideColor(`summary-${side}`, 0);
+            updateCarSideColor(side, 0);
             document.getElementById(`${side}-percentage`).textContent = '0%';
         });
     } else {
-        // Calculate average exposures efficiently
+        // Calculate and apply average exposures
         const avgExposures = sides.reduce((acc, side) => {
             acc[side] = daylightData.reduce((sum, data) => sum + data.exposures[side], 0) / daylightData.length;
             return acc;
         }, {});
         
-        // Update UI and find extremes in single pass
         let maxExposure = { side: '', value: -1 };
         let minExposure = { side: '', value: 2 };
         
         Object.entries(avgExposures).forEach(([side, exposure]) => {
-            updateCarSideColor(`summary-${side}`, exposure);
+            updateCarSideColor(side, exposure);
             document.getElementById(`${side}-percentage`).textContent = `${(exposure * 100).toFixed(0)}%`;
             
             if (exposure > maxExposure.value) maxExposure = { side, value: exposure };
             if (exposure < minExposure.value) minExposure = { side, value: exposure };
         });
         
-        // Console logging
+        // Console summary
         console.log('\n=== TRIP SUMMARY ===');
         console.log('Average sun exposure levels:');
         sides.forEach(side => console.log(`  ${side.charAt(0).toUpperCase() + side.slice(1)}: ${(avgExposures[side] * 100).toFixed(1)}%`));
-        console.log(`Most exposed side: ${maxExposure.side} (${(maxExposure.value * 100).toFixed(1)}%)`);
-        console.log(`Least exposed side: ${minExposure.side} (${(minExposure.value * 100).toFixed(1)}%)`);
+        console.log(`Most exposed: ${maxExposure.side} (${(maxExposure.value * 100).toFixed(1)}%)`);
+        console.log(`Least exposed: ${minExposure.side} (${(minExposure.value * 100).toFixed(1)}%)`);
     }
     
     // Toggle visibility
-    DOM.resultsPlaceholder().style.display = 'none';
-    DOM.carSummary().style.display = 'block';
+    DOM.resultsPlaceholder.style.display = 'none';
+    DOM.carSummary.style.display = 'block';
 };
 
 const clearCarVisualization = () => {
-    DOM.resultsPlaceholder().style.display = 'flex';
-    DOM.carSummary().style.display = 'none';
+    DOM.resultsPlaceholder.style.display = 'flex';
+    DOM.carSummary.style.display = 'none';
 };
 
 window.onload = initMap;
