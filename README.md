@@ -16,9 +16,17 @@ $$\theta_{rel} = (A_{sun} - B_{car} + 360°) \bmod 360°$$
 Where $B_{car}$ is the car's bearing (travel direction).
 
 **Side Exposure Calculation:**
-Each car side's exposure is modeled as:
+Each car side's exposure is calculated using angular difference with tolerance:
 
-$$E_{side} = \max(0, \cos(\theta_{rel} - \theta_{side}))$$
+For each side with orientation $\theta_{side}$:
+1. Calculate angular difference: $\alpha = |\theta_{rel} - \theta_{side}|$
+2. Handle wraparound: $\alpha = \min(\alpha, 360° - \alpha)$  
+3. Apply exposure formula with 90° tolerance:
+   
+$$E_{side} = \begin{cases}
+\cos(\alpha) & \text{if } \alpha \leq 90° \\
+0 & \text{if } \alpha > 90°
+\end{cases}$$
 
 Where $\theta_{side}$ represents the side's orientation:
 - Front: $0°$
@@ -26,10 +34,10 @@ Where $\theta_{side}$ represents the side's orientation:
 - Back: $180°$
 - Left: $270°$
 
-The exposure values are normalized so that:
+The raw exposure values are then normalized so that:
 $$E_{front} + E_{back} + E_{left} + E_{right} = 1$$
 
-This ensures the total sun energy hitting the car is conserved and distributed among the sides based on geometry.
+This ensures the total sun energy hitting the car is conserved and distributed among the sides based on geometry, while the 90° tolerance prevents sides from receiving exposure when the sun is behind them.
 
 ## Interactive Sun Exposure Visualization
 
