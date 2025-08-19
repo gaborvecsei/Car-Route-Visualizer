@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sun Exposure Route Planner - A Fun Pet Project</title>
+    <title>Sun Exposure Route Planner</title>
     <meta name="description" content="Free sun exposure route planner that calculates which side of your car gets sunlight during road trips. Plan seating arrangements, avoid hot spots, and optimize your driving comfort with real-time sun tracking and route analysis.">
     <meta name="author" content="Gabor Vecsei">
     <meta name="robots" content="index, follow">
@@ -12,12 +12,12 @@
     
     <!-- Enhanced Social Meta -->
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Sun Exposure Route Planner - A Fun Pet Project">
+    <meta property="og:title" content="Sun Exposure Route Planner">
     <meta property="og:description" content="A fun side project to see which side of your car gets sun exposure during road trips.">
     <meta property="og:url" content="https://sun.gaborvecsei.com/">
     <meta property="og:site_name" content="Sun Exposure Route Planner">
     <meta property="twitter:card" content="summary">
-    <meta property="twitter:title" content="Sun Exposure Route Planner - A Fun Pet Project">
+    <meta property="twitter:title" content="Sun Exposure Route Planner">
     <meta property="twitter:description" content="A fun side project to see which side of your car gets sun exposure during road trips.")
     
     <!-- App Icons -->
@@ -137,9 +137,24 @@
 <body class="font-sans min-h-screen bg-white text-gray-900 leading-relaxed overflow-x-hidden antialiased">
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-gray-900 text-white px-4 py-2 rounded-md z-[1000] font-medium">Skip to main content</a>
     <div class="max-w-full m-0 p-0 min-h-screen flex flex-col">
-        <header class="px-6 py-8 text-center border-b border-gray-100" role="banner">
-            <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Sun Exposure Route Planner</h1>
-            <p class="text-gray-500 text-sm md:text-base max-w-2xl mx-auto">Calculate sun exposure on different sides of your vehicle during road trips</p>
+        <header class="relative bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 px-6 py-10 text-center border-b border-amber-100 overflow-hidden" role="banner">
+            <!-- Decorative background elements -->
+            <div class="absolute top-4 left-8 text-6xl opacity-20 animate-pulse">☀️</div>
+            <div class="absolute bottom-4 right-8 text-5xl opacity-20 transform rotate-12">🚗</div>
+            
+            <div class="relative z-10">
+                <div class="flex items-center justify-center gap-3 mb-3">
+                    <h1 class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                        Sun Exposure Route Planner
+                    </h1>
+                </div>
+                <p class="text-gray-700 text-base md:text-lg max-w-2xl mx-auto font-medium mb-2">
+                    Who's getting cooked on your next road trip? 🔥
+                </p>
+                <p class="text-gray-600 text-sm md:text-base max-w-xl mx-auto">
+                    Calculate sun exposure for each seat • Pick your side wisely • Stay cool
+                </p>
+            </div>
         </header>
         
         <!-- Mode Toggle -->
