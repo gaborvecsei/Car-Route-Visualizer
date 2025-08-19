@@ -424,6 +424,18 @@
                 routeBtn.classList.remove(...primaryClasses);
                 routeBtn.classList.add(...secondaryClasses);
                 initTestMode();
+                
+                // Smooth scroll to test section
+                setTimeout(() => {
+                    const testSection = document.getElementById('test-sidebar');
+                    if (testSection) {
+                        testSection.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'start',
+                            inline: 'nearest'
+                        });
+                    }
+                }, 150);
             }
         };
         
