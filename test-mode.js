@@ -29,7 +29,7 @@ const switchMode = (mode) => {
         // Restore the correct results state when returning to route mode
         // Check if we have actual results by checking if any percentage is not "0%"
         const frontPercentage = document.getElementById('front-percentage');
-        const hasResults = frontPercentage && frontPercentage.textContent !== '0%';
+        const hasResults = frontPercentage?.textContent !== '0%';
         
         if (hasResults) {
             // Show the actual results
@@ -155,10 +155,15 @@ const createTestVisualization = (testCase) => {
 };
 
 const updateInteractiveTest = () => {
-    const carBearing = parseInt(document.getElementById('car-bearing-slider').value);
-    const sunAzimuth = parseInt(document.getElementById('sun-azimuth-slider').value);
+    const carBearingSlider = document.getElementById('car-bearing-slider');
+    const sunAzimuthSlider = document.getElementById('sun-azimuth-slider');
     
-    // Update display values
+    if (!carBearingSlider || !sunAzimuthSlider) return;
+    
+    const carBearing = parseInt(carBearingSlider.value);
+    const sunAzimuth = parseInt(sunAzimuthSlider.value);
+    
+    // Update display values with null checks
     const updates = [
         ['car-bearing-value', carBearing + '°'],
         ['sun-azimuth-value', sunAzimuth + '°'],
@@ -166,11 +171,14 @@ const updateInteractiveTest = () => {
         ['sun-azimuth-compass', getCompassDirection(sunAzimuth)]
     ];
     updates.forEach(([id, value]) => {
-        document.getElementById(id).textContent = value;
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
     });
     
     const container = document.getElementById('test-visualization-container');
-    container.innerHTML = createTestVisualization({ name: "Interactive Test", carBearing, sunAzimuth });
+    if (container) {
+        container.innerHTML = createTestVisualization({ name: "Interactive Test", carBearing, sunAzimuth });
+    }
 };
 
 const runTestCase = (testCase) => {

@@ -6,13 +6,17 @@ const CONFIG = {
     NOMINATIM_URL: 'https://nominatim.openstreetmap.org/search'
 };
 
-// Single State Object Pattern - unified state management
+// Single State Object Pattern - unified state management with validation
 const AppState = {
     route: { data: null, layer: null },
     sun: { positions: [], markers: [] },
     car: { markers: [] },
     ui: { loading: false, status: '', timeout: null },
-    get isReady() { return this.route.data !== null; }
+    get isReady() { return this.route.data !== null; },
+    
+    // Add validation methods
+    validateRoute() { return this.route.data?.path?.length > 0; },
+    validateSunData() { return Array.isArray(this.sun.positions) && this.sun.positions.length > 0; }
 };
 
 // DOM element cache - populated once on initialization  
@@ -131,26 +135,23 @@ const initMap = () => {
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
     
-    // Event delegation pattern - single handler for multiple events
+    // Simplified event handlers - direct binding for better performance
+    DOM.visualizeBtn.addEventListener('click', visualizeRoutes);
+    document.getElementById('route-mode-btn')?.addEventListener('click', () => window.switchMode?.('route'));
+    document.getElementById('test-mode-btn')?.addEventListener('click', () => window.switchMode?.('test'));
+    document.getElementById('try-test-mode')?.addEventListener('click', () => window.switchMode?.('test'));
+    
+    // Delegate only dynamic events (analysis-points-toggle is created dynamically)
     document.addEventListener('click', e => {
-        const handlers = {
-            'visualize-btn': visualizeRoutes,
-            'analysis-points-toggle': toggleAnalysisPoints,
-            'route-mode-btn': () => window.switchMode && switchMode('route'),
-            'test-mode-btn': () => window.switchMode && switchMode('test'),
-            'try-test-mode': () => window.switchMode && switchMode('test'),
-            'footer-test-mode': () => window.switchMode && switchMode('test')
-        };
-        handlers[e.target.id]?.();
+        if (e.target.id === 'analysis-points-toggle') toggleAnalysisPoints();
     });
     
-    // Event listeners for test mode sliders
-    document.addEventListener('input', e => {
-        if (['car-bearing-slider', 'sun-azimuth-slider'].includes(e.target.id)) {
-            if (window.updateInteractiveTest) {
-                updateInteractiveTest();
-            }
-        }
+    // Test mode slider events with null check
+    const sliders = ['car-bearing-slider', 'sun-azimuth-slider'];
+    sliders.forEach(id => {
+        document.getElementById(id)?.addEventListener('input', () => {
+            window.updateInteractiveTest?.();
+        });
     });
     
     // Keypress events for inputs
@@ -168,6 +169,8 @@ const initMap = () => {
 };
 
 const showStatus = (message, type = 'info') => {
+    if (!DOM.status) return;
+    
     const statusColors = {
         info: 'border-blue-200 bg-blue-50 text-blue-900',
         success: 'border-green-200 bg-green-50 text-green-900',
@@ -175,8 +178,11 @@ const showStatus = (message, type = 'info') => {
         warning: 'border-amber-200 bg-amber-50 text-amber-900'
     };
     
-    DOM.status.textContent = message;
-    DOM.status.className = `absolute bottom-3 left-3 right-3 p-3 text-center rounded-md text-sm bg-white/95 backdrop-blur-sm border shadow-sm z-[1000] opacity-0 transition-opacity duration-300 [&:not(:empty)]:opacity-100 ${statusColors[type] || statusColors.info}`;
+    // Use requestAnimationFrame to optimize DOM updates
+    requestAnimationFrame(() => {
+        DOM.status.textContent = message;
+        DOM.status.className = `absolute bottom-3 left-3 right-3 p-3 text-center rounded-md text-sm bg-white/95 backdrop-blur-sm border shadow-sm z-[1000] opacity-0 transition-opacity duration-300 [&:not(:empty)]:opacity-100 ${statusColors[type] || statusColors.info}`;
+    });
 };
 
 const validateInputs = () => {
@@ -247,6 +253,14 @@ const calculateRoute = async (fromLocation, toLocation) => {
     throw new Error('No valid route found in OSRM response');
 };
 
+// Utility function - moved to top for reuse
+const formatDuration = (seconds) => {
+    const totalMinutes = Math.round(seconds / 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+};
+
 const visualizeRoutes = async () => {
     const routeFrom = DOM.routeFrom.value.trim();
     const routeTo = DOM.routeTo.value.trim();
@@ -274,14 +288,6 @@ const visualizeRoutes = async () => {
         displayRoute(AppState.route.data, CONFIG.ROUTE_COLORS.ROUTE1, 'Route');
         fitMapToRoutes([AppState.route.data]);
         updateRouteDataSection(AppState.route.data);
-        
-        // Format duration inline
-        const formatDuration = (seconds) => {
-            const totalMinutes = Math.round(seconds / 60);
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = totalMinutes % 60;
-            return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-        };
         
         const routeDistance = (AppState.route.data.distance / 1000).toFixed(1);
         const routeTime = formatDuration(AppState.route.data.duration);
@@ -332,12 +338,6 @@ const createCard = (icon, title, value, subtitle = '') => `
     </div>`;
 
 const updateRouteDataSection = (routeData) => {
-    const formatDuration = (seconds) => {
-        const totalMinutes = Math.round(seconds / 60);
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-        return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-    };
     
     const routeDistance = (routeData.distance / 1000).toFixed(1);
     const routeTime = formatDuration(routeData.duration);
@@ -428,13 +428,6 @@ const displayRoute = (routeData, color, label) => {
     }).addTo(map);
     
     AppState.route.layer = layer;
-    
-    const formatDuration = (seconds) => {
-        const totalMinutes = Math.round(seconds / 60);
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-        return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-    };
     
     layer.bindPopup(`
         <strong>${label}</strong><br>
@@ -664,7 +657,10 @@ const createSkyDomeVisualization = (sunPos, index) => {
 };
 
 const clearSunMarkers = () => {
-    AppState.sun.markers.forEach(marker => map.removeLayer(marker));
+    AppState.sun.markers.forEach(marker => {
+        if (marker.remove) marker.remove();
+        else map.removeLayer(marker);
+    });
     AppState.sun.markers = [];
 };
 
@@ -791,35 +787,33 @@ const updateSummaryVisualization = (carExposureData) => {
     const daylightData = carExposureData.filter(data => data.isDaylight);
     const sides = ['front', 'back', 'left', 'right'];
     
-    if (daylightData.length === 0) {
-        sides.forEach(side => {
-            updateCarSideColor(side, 0);
-            document.getElementById(`${side}-percentage`).textContent = '0%';
-        });
-    } else {
-        // Calculate and apply average exposures
-        const avgExposures = sides.reduce((acc, side) => {
+    const avgExposures = daylightData.length > 0 
+        ? sides.reduce((acc, side) => {
             acc[side] = daylightData.reduce((sum, data) => sum + data.exposures[side], 0) / daylightData.length;
             return acc;
-        }, {});
+        }, {})
+        : sides.reduce((acc, side) => ({ ...acc, [side]: 0 }), {});
+    
+    // Update UI for all sides
+    const exposureStats = sides.map(side => {
+        const exposure = avgExposures[side];
+        updateCarSideColor(side, exposure);
+        document.getElementById(`${side}-percentage`).textContent = `${(exposure * 100).toFixed(0)}%`;
+        return { side, exposure };
+    });
+    
+    // Log summary if daylight data exists
+    if (daylightData.length > 0) {
+        const maxExposure = exposureStats.reduce((max, current) => current.exposure > max.exposure ? current : max);
+        const minExposure = exposureStats.reduce((min, current) => current.exposure < min.exposure ? current : min);
         
-        let maxExposure = { side: '', value: -1 };
-        let minExposure = { side: '', value: 2 };
-        
-        Object.entries(avgExposures).forEach(([side, exposure]) => {
-            updateCarSideColor(side, exposure);
-            document.getElementById(`${side}-percentage`).textContent = `${(exposure * 100).toFixed(0)}%`;
-            
-            if (exposure > maxExposure.value) maxExposure = { side, value: exposure };
-            if (exposure < minExposure.value) minExposure = { side, value: exposure };
-        });
-        
-        // Console summary
         console.log('\n=== TRIP SUMMARY ===');
         console.log('Average sun exposure levels:');
-        sides.forEach(side => console.log(`  ${side.charAt(0).toUpperCase() + side.slice(1)}: ${(avgExposures[side] * 100).toFixed(1)}%`));
-        console.log(`Most exposed: ${maxExposure.side} (${(maxExposure.value * 100).toFixed(1)}%)`);
-        console.log(`Least exposed: ${minExposure.side} (${(minExposure.value * 100).toFixed(1)}%)`);
+        exposureStats.forEach(({ side, exposure }) => 
+            console.log(`  ${side.charAt(0).toUpperCase() + side.slice(1)}: ${(exposure * 100).toFixed(1)}%`)
+        );
+        console.log(`Most exposed: ${maxExposure.side} (${(maxExposure.exposure * 100).toFixed(1)}%)`);
+        console.log(`Least exposed: ${minExposure.side} (${(minExposure.exposure * 100).toFixed(1)}%)`);
     }
     
     // Toggle visibility
