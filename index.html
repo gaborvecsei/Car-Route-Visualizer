@@ -111,6 +111,36 @@
         ]
     }
     </script>
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-32K7GL7RDQ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-32K7GL7RDQ', {
+            page_title: 'Route Sun Exposure Visualizer',
+            custom_map: {custom_parameter_1: 'route_analysis'}
+        });
+        
+        // Error tracking
+        window.addEventListener('error', function(e) {
+            gtag('event', 'exception', {
+                description: e.message,
+                fatal: false,
+                file: e.filename,
+                line: e.lineno
+            });
+        });
+        
+        // Track unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(e) {
+            gtag('event', 'exception', {
+                description: 'Unhandled Promise Rejection: ' + e.reason,
+                fatal: false
+            });
+        });
+    </script>
 </head>
 <body class="font-sans bg-background min-h-screen text-foreground leading-relaxed overflow-x-hidden">
     <a href="#main-content" class="absolute -top-10 left-1 bg-primary text-primary-foreground px-2 py-2 no-underline rounded z-[1000] font-semibold focus:top-1">Skip to main content</a>
@@ -445,36 +475,5 @@
     <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
     <script src="config.js?v=3"></script>
     <script src="script.js?v=3"></script>
-    
-    
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-32K7GL7RDQ"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-32K7GL7RDQ', {
-            page_title: 'Route Sun Exposure Visualizer',
-            custom_map: {custom_parameter_1: 'route_analysis'}
-        });
-        
-        // Error tracking
-        window.addEventListener('error', function(e) {
-            gtag('event', 'exception', {
-                description: e.message,
-                fatal: false,
-                file: e.filename,
-                line: e.lineno
-            });
-        });
-        
-        // Track unhandled promise rejections
-        window.addEventListener('unhandledrejection', function(e) {
-            gtag('event', 'exception', {
-                description: 'Unhandled Promise Rejection: ' + e.reason,
-                fatal: false
-            });
-        });
-    </script>
 </body>
 </html>
