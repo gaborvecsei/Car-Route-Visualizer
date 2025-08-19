@@ -4,25 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sun Exposure Route Planner - A Fun Pet Project</title>
-    <meta name="description" content="A fun side project to visualize which side of your car gets sun exposure during road trips. Built for curiosity and entertainment.">
+    <meta name="description" content="Free sun exposure route planner that calculates which side of your car gets sunlight during road trips. Plan seating arrangements, avoid hot spots, and optimize your driving comfort with real-time sun tracking and route analysis.">
     <meta name="author" content="Gabor Vecsei">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://gaborvecsei.github.io/Car-Route-Visualizer/">
+    <meta name="keywords" content="sun exposure, route planner, road trip, car navigation, sun position, travel planning, driving routes, sun tracking, UV exposure, journey planner">
+    <link rel="canonical" href="https://sun.gaborvecsei.com/">
     
-    <!-- Essential Social Meta -->
+    <!-- Enhanced Social Meta -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="Sun Exposure Route Planner - A Fun Pet Project">
     <meta property="og:description" content="A fun side project to see which side of your car gets sun exposure during road trips.">
-    <meta property="og:image" content="https://gaborvecsei.github.io/Car-Route-Visualizer/og-image.jpg">
-    <meta property="twitter:card" content="summary_large_image">
+    <meta property="og:url" content="https://sun.gaborvecsei.com/">
+    <meta property="og:site_name" content="Sun Exposure Route Planner">
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:title" content="Sun Exposure Route Planner - A Fun Pet Project">
+    <meta property="twitter:description" content="A fun side project to see which side of your car gets sun exposure during road trips.")
     
     <!-- App Icons -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☀️</text></svg>">
     <meta name="theme-color" content="#1976d2">
     
-    <!-- External Resources -->
+    <!-- External Resources with Performance Optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org">
+    <link rel="dns-prefetch" href="https://tile.openstreetmap.org">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -52,9 +58,35 @@
         .test-mode-hidden { display: none !important; }
     </style>
     
-    <!-- Structured Data -->
+    <!-- Enhanced Structured Data -->
     <script type="application/ld+json">
-    {"@context": "https://schema.org", "@type": "WebApplication", "name": "Sun Exposure Route Planner", "description": "A fun pet project to visualize sun exposure on different sides of your car during road trips.", "url": "https://gaborvecsei.github.io/Car-Route-Visualizer/", "applicationCategory": "EntertainmentApplication", "featureList": ["Sun position tracking", "Route analysis", "Car-side sun exposure estimation"]}
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Sun Exposure Route Planner",
+      "description": "A fun pet project to visualize sun exposure on different sides of your car during road trips.",
+      "url": "https://sun.gaborvecsei.com/",
+      "applicationCategory": "EntertainmentApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Gabor Vecsei",
+        "url": "https://github.com/gaborvecsei"
+      },
+      "featureList": [
+        "Sun position tracking",
+        "Route analysis", 
+        "Car-side sun exposure estimation",
+        "Interactive test mode",
+        "Real-time route visualization"
+      ],
+      "screenshot": "https://sun.gaborvecsei.com/art/index.jpeg"
+    }
     </script>
     
     <!-- Google tag (gtag.js) -->
@@ -354,6 +386,43 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="py-12 px-4 bg-secondary/20">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-lg md:text-xl font-bold mb-8 text-center flex items-center justify-center gap-2">
+                    <span class="text-lg">❓</span>
+                    Frequently Asked Questions
+                </h2>
+                
+                <div class="space-y-6">
+                    <div class="bg-background rounded-lg p-4 border">
+                        <h3 class="font-semibold mb-2 text-sm">How accurate is the sun exposure calculation?</h3>
+                        <p class="text-muted-foreground text-xs">This is a rough estimation for entertainment purposes. It assumes perfect weather, flat terrain, and constant driving speed. Real-world conditions like buildings, trees, and weather will affect actual sun exposure.</p>
+                    </div>
+                    
+                    <div class="bg-background rounded-lg p-4 border">
+                        <h3 class="font-semibold mb-2 text-sm">What time zone should I use for the calculation?</h3>
+                        <p class="text-muted-foreground text-xs">The tool uses UTC time for all calculations. For best results, convert your local departure time to UTC before entering it in the time field.</p>
+                    </div>
+                    
+                    <div class="bg-background rounded-lg p-4 border">
+                        <h3 class="font-semibold mb-2 text-sm">Can I use this for planning which seat to choose?</h3>
+                        <p class="text-muted-foreground text-xs">Absolutely! That's one of the main use cases. If the tool shows the right side gets 80% sun exposure, you might want to sit on the left side to stay cooler during your trip.</p>
+                    </div>
+                    
+                    <div class="bg-background rounded-lg p-4 border">
+                        <h3 class="font-semibold mb-2 text-sm">What's the difference between Route Planner and Test Mode?</h3>
+                        <p class="text-muted-foreground text-xs">Route Planner analyzes real driving routes between two locations. Test Mode lets you manually adjust car and sun positions to understand how the calculations work.</p>
+                    </div>
+                    
+                    <div class="bg-background rounded-lg p-4 border">
+                        <h3 class="font-semibold mb-2 text-sm">Why does the analysis show different percentages for each car side?</h3>
+                        <p class="text-muted-foreground text-xs">The tool calculates sun exposure based on the angle between the sun's position and your car's orientation at each point along the route, then averages these values to show which sides receive the most direct sunlight.</p>
                     </div>
                 </div>
             </div>
