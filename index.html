@@ -62,24 +62,14 @@
     </script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        /* Minimal custom CSS for range sliders - Tailwind doesn't support these pseudo-elements */
-        input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            @apply bg-transparent cursor-pointer;
+        /* Minimal custom CSS for patterns - Tailwind doesn't support these */
+        .compass-circle { 
+            background: linear-gradient(45deg, #f8f9fa 25%, #fff 25%, #fff 50%, #f8f9fa 50%, #f8f9fa 75%, #fff 75%, #fff); 
+            background-size: 20px 20px; 
         }
-        input[type="range"]::-webkit-slider-track {
-            @apply bg-gray-200 h-1 rounded;
-        }
-        input[type="range"]::-moz-range-track {
-            @apply bg-gray-200 h-1 rounded;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            @apply w-4 h-4 bg-amber-500 rounded-full border-2 border-white shadow-sm transition-all cursor-pointer hover:scale-110 hover:bg-amber-600;
-        }
-        input[type="range"]::-moz-range-thumb {
-            @apply w-4 h-4 bg-amber-500 rounded-full border-2 border-white shadow-sm transition-all cursor-pointer hover:scale-110 hover:bg-amber-600;
+        .sun-glow { 
+            background: radial-gradient(circle, #FFD700 0%, #FFA500 100%); 
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); 
         }
     </style>
     
@@ -216,11 +206,11 @@
                     <div class="space-y-4">
                         <div>
                             <label for="car-bearing-slider" class="block text-sm font-medium mb-2 text-gray-700">Car Direction: <span id="car-bearing-value" class="text-amber-600 font-semibold">0°</span> (<span id="car-bearing-compass">N</span>)</label>
-                            <input type="range" id="car-bearing-slider" min="0" max="360" value="0" step="5" class="w-full">
+                            <input type="range" id="car-bearing-slider" min="0" max="360" value="0" step="5" class="w-full accent-amber-500">
                         </div>
                         <div>
                             <label for="sun-azimuth-slider" class="block text-sm font-medium mb-2 text-gray-700">Sun Position: <span id="sun-azimuth-value" class="text-amber-600 font-semibold">0°</span> (<span id="sun-azimuth-compass">N</span>)</label>
-                            <input type="range" id="sun-azimuth-slider" min="0" max="360" value="0" step="5" class="w-full">
+                            <input type="range" id="sun-azimuth-slider" min="0" max="360" value="0" step="5" class="w-full accent-amber-500">
                         </div>
                     </div>
                 </div>
