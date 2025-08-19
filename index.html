@@ -354,29 +354,41 @@
                 
                     <div>
                         <div class="mb-8">
-                            <h2 class="text-xl font-semibold mb-6 text-gray-900">How It Works</h2>
+                            <h2 class="text-xl font-semibold mb-6 text-gray-900">🔬 How Sun Exposure is Calculated</h2>
                             <div class="space-y-4">
-                                <p class="text-gray-600">The tool calculates approximate sun exposure using:</p>
+                                <p class="text-gray-600">This tool provides a <strong>rough estimation</strong> using simplified calculations:</p>
                                 
                                 <div class="space-y-3">
                                     <div class="pl-4 border-l-2 border-gray-200">
-                                        <h3 class="font-medium text-gray-900 mb-1">Route Analysis</h3>
-                                        <p class="text-gray-600 text-sm">Samples points along your route using OpenStreetMap data</p>
+                                        <h3 class="font-medium text-gray-900 mb-1">📍 Route & Time Analysis</h3>
+                                        <p class="text-gray-600 text-sm">Uses OpenStreetMap API to get route coordinates and distributes analysis points along the route.</p>
                                     </div>
                                     <div class="pl-4 border-l-2 border-gray-200">
-                                        <h3 class="font-medium text-gray-900 mb-1">Sun Position</h3>
-                                        <p class="text-gray-600 text-sm">Calculates sun angles based on time and location</p>
+                                        <h3 class="font-medium text-gray-900 mb-1">☀️ Sun Position</h3>
+                                        <p class="text-gray-600 text-sm">Calculates sun position using SunCalc library with UTC times.</p>
                                     </div>
                                     <div class="pl-4 border-l-2 border-gray-200">
-                                        <h3 class="font-medium text-gray-900 mb-1">Exposure Calculation</h3>
-                                        <p class="text-gray-600 text-sm">Determines which car sides receive direct sunlight</p>
+                                        <h3 class="font-medium text-gray-900 mb-1">🎯 Exposure Estimation</h3>
+                                        <p class="text-gray-600 text-sm">Compares sun direction with car orientation to estimate side exposure.</p>
                                     </div>
                                 </div>
                                 
                                 <div class="p-4 bg-amber-50 rounded-lg border border-amber-200 mt-6">
                                     <p class="text-sm text-amber-800">
-                                        <strong>Note:</strong> This is a simplified estimation that doesn't account for weather, terrain, or obstacles.
+                                        <strong>⚠️ Limitations:</strong> Assumes constant speed, ignores terrain/buildings/trees, perfect weather, direct sunlight only.
                                     </p>
+                                </div>
+                                
+                                <div class="p-4 bg-blue-50 rounded-lg border border-blue-200 mt-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm font-medium text-blue-900">✅ Interactive Calculator</p>
+                                            <p class="text-sm text-blue-700 mt-1">Test sun exposure calculation with adjustable positions</p>
+                                        </div>
+                                        <button id="try-test-mode" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
+                                            Try →
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
